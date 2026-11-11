@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
+import { bindSmartSpectraIpc } from '@smartspectra/node-sdk/main'
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -16,6 +17,7 @@ function createWindow(): void {
       webSecurity: true
     }
   })
+  bindSmartSpectraIpc(window, { logger: () => { /* Avoid forwarding SDK diagnostics. */ } })
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://')) void shell.openExternal(url)
     return { action: 'deny' }

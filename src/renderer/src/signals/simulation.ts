@@ -1,4 +1,4 @@
-import type { SignalListener, SignalSource } from './types'
+import type { CameraDevice, SignalListener, SignalSource } from './types'
 
 export class SimulationSignalSource implements SignalSource {
   readonly kind = 'simulation' as const
@@ -6,6 +6,8 @@ export class SimulationSignalSource implements SignalSource {
   readonly available = true
   private timer?: ReturnType<typeof setInterval>
   private startedAt = 0
+
+  async listCameras(): Promise<CameraDevice[]> { return [] }
 
   async start(listener: SignalListener): Promise<void> {
     await this.stop()
