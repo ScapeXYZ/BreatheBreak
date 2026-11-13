@@ -1,5 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import '@smartspectra/node-sdk/preload'
+// Bundled by relative path so Electron's sandboxed preload needs no package require.
+// @ts-expect-error The published preload is JavaScript-only.
+import '../../node_modules/@smartspectra/node-sdk/js/preload/index.js'
 
 contextBridge.exposeInMainWorld('breathebreak', {
   getRuntimeInfo: (): Promise<{ platform: string; version: string }> => ipcRenderer.invoke('app:get-runtime-info'),
