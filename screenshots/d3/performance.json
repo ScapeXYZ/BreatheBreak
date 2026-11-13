@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-11-13T03:44:33.074Z",
+  "measuredAt": "2026-11-13T04:31:10.491Z",
   "methodology": "DEV SIMULATION only; Electron app metrics sampled after a 3 second tier run; no camera or SDK activated.",
   "results": [
     {
@@ -13,17 +13,18 @@
         "max": 620
       },
       "renderFrameMs": {
-        "median": 1.2000000001862645,
-        "p95": 1.900000000372529
+        "median": 1.299999998882413,
+        "p95": 2
       },
-      "achievedFps": 23.325273787512444,
+      "achievedFps": 22.973322229560928,
       "maxFps": 29.94011976047937,
       "hiddenFrames": 0,
       "recapFrames": 0,
-      "cpuPercent": 3.227166710011625,
+      "cpuPercent": 3.1434361597461944,
       "d1BaselineCpuPercent": 2.302,
-      "cpuIncreasePoints": 0.925166710011625,
-      "workingSetMb": 451.4921875
+      "cpuIncreasePoints": 0.8414361597461943,
+      "workingSetMb": 443.96875,
+      "controlsVisible": true
     },
     {
       "viewport": {
@@ -36,17 +37,18 @@
         "max": 620
       },
       "renderFrameMs": {
-        "median": 1.2999999998137355,
-        "p95": 1.900000000372529
+        "median": 1.400000000372529,
+        "p95": 2.399999998509884
       },
-      "achievedFps": 22.688110281447447,
+      "achievedFps": 23.43727670277532,
       "maxFps": 29.94011976047937,
       "hiddenFrames": 0,
       "recapFrames": 0,
-      "cpuPercent": 3.1042079401185476,
+      "cpuPercent": 3.558325349225316,
       "d1BaselineCpuPercent": 2.302,
-      "cpuIncreasePoints": 0.8022079401185476,
-      "workingSetMb": 436.45703125
+      "cpuIncreasePoints": 1.2563253492253161,
+      "workingSetMb": 446.96875,
+      "controlsVisible": true
     },
     {
       "viewport": {
@@ -59,17 +61,18 @@
         "max": 240
       },
       "renderFrameMs": {
-        "median": 0.5,
-        "p95": 1
+        "median": 0.6999999992549419,
+        "p95": 1.199999999254942
       },
-      "achievedFps": 21.904870277651337,
+      "achievedFps": 21.433470507544577,
       "maxFps": 29.94011976047937,
       "hiddenFrames": 0,
       "recapFrames": 0,
-      "cpuPercent": 2.3678987214695963,
+      "cpuPercent": 2.6026523963045998,
       "d1BaselineCpuPercent": 2.302,
-      "cpuIncreasePoints": 0.0658987214695963,
-      "workingSetMb": 444.78125
+      "cpuIncreasePoints": 0.3006523963045997,
+      "workingSetMb": 449.80078125,
+      "controlsVisible": true
     },
     {
       "viewport": {
@@ -82,17 +85,18 @@
         "max": 620
       },
       "renderFrameMs": {
-        "median": 1.2999999998137355,
-        "p95": 2.3999999994412065
+        "median": 1.199999999254942,
+        "p95": 1.900000000372529
       },
-      "achievedFps": 23.214993488477443,
+      "achievedFps": 22.650697924629807,
       "maxFps": 29.94011976047937,
       "hiddenFrames": 0,
       "recapFrames": 0,
-      "cpuPercent": 3.230719307399921,
+      "cpuPercent": 3.0243708291009463,
       "d1BaselineCpuPercent": 2.103,
-      "cpuIncreasePoints": 1.127719307399921,
-      "workingSetMb": 465.2734375
+      "cpuIncreasePoints": 0.9213708291009461,
+      "workingSetMb": 471.16015625,
+      "controlsVisible": true
     },
     {
       "viewport": {
@@ -105,17 +109,18 @@
         "max": 620
       },
       "renderFrameMs": {
-        "median": 1,
-        "p95": 1.7999999998137355
+        "median": 0.900000000372529,
+        "p95": 2.400000000372529
       },
-      "achievedFps": 22.577879394112603,
+      "achievedFps": 22.473827947200736,
       "maxFps": 29.94011976047937,
       "hiddenFrames": 0,
       "recapFrames": 0,
-      "cpuPercent": 2.821476262298515,
+      "cpuPercent": 3.2841117941829188,
       "d1BaselineCpuPercent": 2.103,
-      "cpuIncreasePoints": 0.7184762622985148,
-      "workingSetMb": 450.1484375
+      "cpuIncreasePoints": 1.1811117941829186,
+      "workingSetMb": 464.36328125,
+      "controlsVisible": true
     },
     {
       "viewport": {
@@ -128,17 +133,18 @@
         "max": 240
       },
       "renderFrameMs": {
-        "median": 0.6000000005587935,
+        "median": 0.6999999992549419,
         "p95": 1.099999999627471
       },
-      "achievedFps": 22.082554781722447,
+      "achievedFps": 22.651339260433765,
       "maxFps": 29.94011976047937,
       "hiddenFrames": 0,
       "recapFrames": 0,
-      "cpuPercent": 2.6018528468763527,
+      "cpuPercent": 2.6906434258285996,
       "d1BaselineCpuPercent": 2.103,
-      "cpuIncreasePoints": 0.49885284687635245,
-      "workingSetMb": 449.95703125
+      "cpuIncreasePoints": 0.5876434258285994,
+      "workingSetMb": 457.78515625,
+      "controlsVisible": true
     }
   ]
 }

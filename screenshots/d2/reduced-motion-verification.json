@@ -1,0 +1,23 @@
+{
+  "measuredAt": "2026-11-13T04:37:24.371Z",
+  "evidence": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "reducedMotion": true,
+      "ringTransition": "1e-05s",
+      "status": "paused"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "reducedMotion": true,
+      "ringTransition": "1e-05s",
+      "status": "paused"
+    }
+  ]
+}

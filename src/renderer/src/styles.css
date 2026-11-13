@@ -98,7 +98,7 @@ body { min-height: 100vh; min-height: 100dvh; }
   .welcome-screen { grid-template-columns: minmax(0, 1fr); }
   .session-screen { grid-template-columns: minmax(0, 1fr) 310px; }
 }
-@media (max-height: 820px) and (min-width: 60rem) {
+@media (max-height: 920px) and (min-width: 60rem) {
   .app-stage { padding-block: var(--space-lg); }
   .consent-panel { padding: var(--space-lg); }
   .consent-check, .field-label { margin-top: var(--space-md); }
@@ -148,7 +148,7 @@ body { min-height: 100vh; min-height: 100dvh; }
 .pacer-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); }
 .pacer-actions .button { width: 100%; }
 .pacer-note { margin-top: var(--space-md); color: var(--color-muted); font-size: var(--text-sm); text-align: center; }
-@media (max-height: 820px) and (min-width: 60rem) {
+@media (max-height: 920px) and (min-width: 60rem) {
   .session-panel { padding: var(--space-lg); }
   .rate-block { margin-top: var(--space-md); padding-bottom: var(--space-md); }
   .rate-value { font-size: 3.5rem; }
@@ -159,5 +159,5 @@ body { min-height: 100vh; min-height: 100dvh; }
   .pacer-visual { width: min(300px, 50vh); margin-block: var(--space-sm); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pacer-ring { transition: opacity 150ms linear; }
+  .pacer-ring { transition: none; }
 }

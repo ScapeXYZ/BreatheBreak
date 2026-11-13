@@ -3,6 +3,7 @@ import { AutoQualityController, createFlowerParticles, FLOWER_PARTICLES, particl
 
 type Props = { readChest: () => number | undefined; active: boolean; quality?: FlowerQuality; preview?: boolean }
 const particles = createFlowerParticles(FLOWER_PARTICLES.high)
+const coreRings = [[.072,.07],[.05,.14],[.03,.3],[.014,.82]] as const
 
 export function GardenCanvas({ readChest, active, quality = 'auto', preview = false }: Props): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -24,15 +25,15 @@ export function GardenCanvas({ readChest, active, quality = 'auto', preview = fa
       if (motion.matches && !options.preview && !changed && lastFrameAt > -Infinity) return
       lastChest = chest; breathScale = options.preview ? 1.035 : resolveBreathScale(chest, breathScale, motion.matches)
       context.setTransform(ratio, 0, 0, ratio, 0, 0); context.fillStyle = colors.ground; context.fillRect(0, 0, width, height)
-      const cx = width * .5, cy = height * .49, radius = Math.min(width, height) * .29 * breathScale, count = particleLimit(options.quality, auto.count)
+      const cx = width * .5, cy = height * .49, radius = Math.min(width, height) * .29 * breathScale, count = particleLimit(options.quality, auto.count), low = options.quality === 'low'
       context.save(); context.translate(cx, cy); context.globalCompositeOperation = 'screen'; context.strokeStyle = colors.mesh; context.lineWidth = .45
       for (let index = 0; index < count; index += 1) {
         const point = particles[index], length = radius * (.22 + point.along * .86), widthCurve = radius * .28 * point.across, bend = Math.sin(point.along * Math.PI) * radius * .08
         const x = Math.cos(point.angle) * length - Math.sin(point.angle) * (widthCurve + bend), y = Math.sin(point.angle) * length + Math.cos(point.angle) * (widthCurve + bend)
-        if (index % 10 === 0 && index + 9 < count) { const peer = particles[index + 9], peerLength = radius * (.22 + peer.along * .86), peerWidth = radius * .28 * peer.across; context.globalAlpha = .08; context.beginPath(); context.moveTo(x, y); context.lineTo(Math.cos(peer.angle) * peerLength - Math.sin(peer.angle) * peerWidth, Math.sin(peer.angle) * peerLength + Math.cos(peer.angle) * peerWidth); context.stroke() }
-        context.globalAlpha = point.alpha; context.fillStyle = colors.petal; context.beginPath(); context.arc(x, y, point.size, 0, Math.PI * 2); context.fill()
+        if (index % (low?3:10) === 0 && index + 9 < count) { const peer = particles[index + 9], peerLength = radius * (.22 + peer.along * .86), peerWidth = radius * .28 * peer.across, peerBend = Math.sin(peer.along * Math.PI) * radius * .08; context.globalAlpha = low?.15:.08; context.beginPath(); context.moveTo(x, y); context.lineTo(Math.cos(peer.angle) * peerLength - Math.sin(peer.angle) * (peerWidth + peerBend), Math.sin(peer.angle) * peerLength + Math.cos(peer.angle) * (peerWidth + peerBend)); context.stroke() }
+        context.globalAlpha = low?Math.min(.9,point.alpha*1.25):point.alpha; context.fillStyle = colors.petal; context.beginPath(); context.arc(x, y, low?point.size*1.12:point.size, 0, Math.PI * 2); context.fill()
       }
-      context.globalAlpha = .32; context.fillStyle = colors.center; context.beginPath(); context.arc(0, 0, radius * .06, 0, Math.PI * 2); context.fill(); context.globalAlpha = .75; context.beginPath(); context.arc(0, 0, radius * .018, 0, Math.PI * 2); context.fill(); context.restore()
+      context.fillStyle = colors.center;for(const [coreRadius,alpha] of coreRings){context.globalAlpha=alpha;context.beginPath();context.arc(0,0,radius*coreRadius,0,Math.PI*2);context.fill()}context.restore()
       const durationMs = performance.now() - started; if (options.quality === 'auto') auto.observe(durationMs); lastFrameAt = now
       if (document.documentElement.dataset.screenshotHarness) window.dispatchEvent(new CustomEvent('breathebreak:garden-frame', { detail: { durationMs, timestamp: now, quality: options.quality, particles: count, chest, reducedMotion: motion.matches } }))
     }
