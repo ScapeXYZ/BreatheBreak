@@ -1,0 +1,26 @@
+{
+  "commit": "55e510b",
+  "measuredAt": "2026-11-13T02:35:15.704Z",
+  "method": "D1 app.getAppMetrics summed process CPU after deterministic warm-up over 2500 ms",
+  "conditions": {
+    "electron": "43.8.1",
+    "cameraPermissions": "denied",
+    "source": "deterministic DEV SIMULATION"
+  },
+  "results": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "cpuPercent": 2.898049656132498
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "cpuPercent": 2.936127168504476
+    }
+  ]
+}
