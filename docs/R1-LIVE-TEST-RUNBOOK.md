@@ -18,7 +18,7 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 3. Select **SmartSpectra SDK** and explicitly select Camo by its displayed device entry.
 4. Verify **Start session** remains disabled until camera selection and consent are complete.
 5. Select consent and press **Start session** once.
-6. Confirm the camera-status line says **Camera active**, the LIVE indicator is visible, and the signal-quality row progresses without invented values.
+6. Confirm the camera-status line says **Camera: on**, the LIVE indicator is visible, and the signal-quality row progresses without invented values.
 7. Observe the rate placeholder during warm-up and record whether the required “Measuring…” copy is present.
 8. Run only for the duration authorized by Claude. Record sanitized start/end timestamps, duration, error-event count, rate-sample count, and chest-sample count; do not record sample values.
 9. Keep **Stop session** visible and operable throughout. Press it once at the authorized endpoint.
@@ -43,3 +43,22 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 - Raw physiological data, credentials, or identifying data would be written to tracked files.
 - Presage usage cannot be checked before and after.
 - Claude has not explicitly authorized the live session.
+
+## Exact launch preparation (do not run before authorization)
+
+From PowerShell, configure the credential in the ignored local `.env` without printing its value, then launch the explicitly gated R1 mode:
+
+```powershell
+Set-Location C:\dev\breathebreak
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+notepad .env  # enter VITE_SMARTSPECTRA_API_KEY locally; do not print it
+# Edit .env locally: VITE_SMARTSPECTRA_API_KEY=<development key>
+$env:BREATHEBREAK_LIVE_TEST = 'R1_AUTHORIZED'
+npm run dev
+```
+
+The exact sentinel is intentional: unset, empty, `1`, `true`, or any other value leaves live-test mode disabled. In authorized mode, SDK auto-retry is forced to zero and sanitized diagnostics are written to `.diagnostics/r1-live-test.ndjson`. Remove the process environment setting after the run:
+
+```powershell
+Remove-Item Env:BREATHEBREAK_LIVE_TEST -ErrorAction SilentlyContinue
+```
