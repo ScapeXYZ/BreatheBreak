@@ -1,0 +1,162 @@
+// @vitest-environment jsdom
+import { act } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { App } from './App'
+import { sessionRecorder } from './features/sessions/recorder'
+import { useSession } from './store/session'
+
+globalThis.IS_REACT_ACT_ENVIRONMENT = true
+
+let root: Root | undefined
+let host: HTMLDivElement | undefined
+
+function button(label: string): HTMLButtonElement {
+  const match = [...document.querySelectorAll<HTMLButtonElement>('button')].find((node) => node.textContent?.trim() === label)
+  if (!match) throw new Error(`Missing button: ${label}`)
+  return match
+}
+
+async function click(label: string): Promise<void> {
+  await act(async () => {
+    button(label).click()
+    await Promise.resolve()
+  })
+}
+
+async function advance(milliseconds: number): Promise<void> {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(milliseconds)
+  })
+}
+
+function expectSimulationDisclosure(): void {
+  expect(document.body.textContent).toContain('Dev simulation: synthetic data, not demo evidence')
+}
+
+async function runJourney(width: number, height: number): Promise<void> {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: width })
+  Object.defineProperty(window, 'innerHeight', { configurable: true, value: height })
+  if (!host) {
+    host = document.createElement('div')
+    document.body.append(host)
+    root = createRoot(host)
+    await act(async () => root!.render(<App />))
+  } else {
+    const existingConsent = document.querySelector<HTMLInputElement>('.consent-check input')!
+    if (existingConsent.checked) act(() => existingConsent.click())
+  }
+
+  const source = document.querySelector<HTMLSelectElement>('.field-label select')!
+  act(() => {
+    source.value = 'simulation'
+    source.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+  expect(button('Start session').disabled).toBe(true)
+  expectSimulationDisclosure()
+
+  const consent = document.querySelector<HTMLInputElement>('.consent-check input')!
+  act(() => {
+    consent.click()
+  })
+  expect(button('Start session').disabled).toBe(false)
+  await click('Start session')
+  expect(useSession.getState().phase).toBe('running')
+  await advance(1_000)
+  expect(document.querySelector('canvas[aria-label="Live measured breathing flower"]')).toBeTruthy()
+  expectSimulationDisclosure()
+
+  await advance(6_800)
+  expect(useSession.getState().gatedRates).toEqual([])
+  await advance(2_100)
+  const validRates = [...useSession.getState().gatedRates]
+  expect(validRates.length).toBeGreaterThan(0)
+  expect(validRates.every((rate) => rate >= 4 && rate <= 45)).toBe(true)
+  expect(useSession.getState().sample?.quality.kind).toBe('ok')
+  expect(sessionRecorder.latestChest()).toBeTypeOf('number')
+
+  const opener = button('Open guided pacer')
+  opener.focus()
+  await click('Open guided pacer')
+  expect(document.activeElement?.getAttribute('aria-label')).toBe('Close guided pacer')
+  expect(document.body.textContent).toContain('GUIDED, not measured')
+  expectSimulationDisclosure()
+  await click('Start guided pacing')
+  await advance(63_000)
+  expect(document.querySelector('.pacer-overlay')?.getAttribute('data-pacer-status')).toBe('complete')
+  expect(sessionRecorder.guidedCompletions.size).toBe(1)
+  await click('Close')
+  expect(document.querySelector('.pacer-overlay')).toBeNull()
+  expect(document.activeElement).toBe(opener)
+
+  const ratesAtStop = [...useSession.getState().gatedRates]
+  const expectedAverage = ratesAtStop.reduce((sum, rate) => sum + rate, 0) / ratesAtStop.length
+  await click('Stop session')
+  expect(useSession.getState().phase).toBe('recap')
+  await advance(300)
+  expect(useSession.getState().recap).toMatchObject({
+    averageBreathingRate: expectedAverage,
+    sampleCount: ratesAtStop.length,
+    source: 'simulation',
+    guidedPaceCompleted: true
+  })
+  expect(Object.isFrozen(useSession.getState().recap)).toBe(true)
+  expect(useSession.getState().gatedRates).toEqual([])
+  expect(useSession.getState().sample).toBeUndefined()
+  expect(sessionRecorder.size).toBe(0)
+  expect(document.body.textContent).toContain('Guided pace completed')
+  expect(document.body.textContent).toContain('Guided, not measured')
+  expectSimulationDisclosure()
+
+  await click('Done')
+  expect(useSession.getState()).toMatchObject({ phase: 'ready', recap: undefined, gatedRates: [], sample: undefined })
+  await advance(300)
+  expect(document.body.textContent).toContain('Welcome / Consent')
+  expect(button('Start session').disabled).toBe(false)
+  expectSimulationDisclosure()
+
+  await click('Start session')
+  expect(useSession.getState()).toMatchObject({ phase: 'running', recap: undefined, gatedRates: [], sample: undefined })
+  await advance(300)
+  expect(sessionRecorder.guidedCompletions.size).toBe(0)
+  await click('Stop session')
+  expect(useSession.getState().recap).toMatchObject({ sampleCount: 0, guidedPaceCompleted: false })
+  await advance(300)
+  expect(document.body.textContent).not.toContain('Guided pace completed')
+  await click('Done')
+  expect(useSession.getState().phase).toBe('ready')
+  await advance(300)
+}
+
+beforeAll(() => {
+  vi.useFakeTimers()
+})
+
+beforeEach(() => {
+  vi.clearAllTimers()
+  vi.setSystemTime(new Date('2026-11-13T12:00:00Z'))
+  const values = new Map<string, string>()
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value), removeItem: (key: string) => values.delete(key), clear: () => values.clear() } })
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => null })
+  sessionRecorder.clear()
+  useSession.setState({ phase: 'welcome', consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
+})
+
+afterEach(() => {
+  if (root) act(() => root!.unmount())
+  host?.remove()
+  root = undefined
+  host = undefined
+  sessionRecorder.clear()
+})
+
+afterAll(() => {
+  vi.useRealTimers()
+})
+
+describe('complete simulation-only user journey', () => {
+  it('completes every state at both target viewports without stale session data', async () => {
+    await runJourney(1280, 800)
+    await runJourney(1440, 900)
+  })
+})
