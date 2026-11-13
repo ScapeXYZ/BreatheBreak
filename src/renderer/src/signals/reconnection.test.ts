@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ReconnectionPolicy } from './reconnection'
+import { retryAttemptsForLiveTest } from '../../../shared/liveTest'
 
 describe('ReconnectionPolicy', () => {
   it('provides bounded exponential delays for three attempts', () => {
@@ -11,5 +12,10 @@ describe('ReconnectionPolicy', () => {
     const policy = new ReconnectionPolicy(3, 10)
     policy.nextDelay(); policy.nextDelay(); policy.reset()
     expect(policy.nextDelay()).toBe(10)
+  })
+  it('disables auto-retry in explicit live-test mode', () => {
+    const policy = new ReconnectionPolicy(retryAttemptsForLiveTest(true))
+    expect(policy.nextDelay()).toBeUndefined()
+    expect(policy.attemptCount).toBe(0)
   })
 })

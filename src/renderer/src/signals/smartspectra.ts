@@ -4,6 +4,7 @@ import { stopMediaStream, videoCameras } from './cameras'
 import { WarmupGate } from './gating'
 import { ReconnectionPolicy, wait } from './reconnection'
 import type { CameraDevice, SignalListener, SignalQuality, SignalSource, SourceStatus } from './types'
+import { retryAttemptsForLiveTest } from '../../../shared/liveTest'
 
 const REQUESTED_METRICS = [MetricType.CHEST_BREATHING, MetricType.BREATHING_RATE, MetricType.ABDOMEN_BREATHING]
 
@@ -42,6 +43,10 @@ export class SmartSpectraSignalSource implements SignalSource {
   private reconnect = new ReconnectionPolicy()
   private stopping = false
   private recovering = false
+  private liveTestEnabled = false
+  private deliveredFrames = 0
+  private sentFrames = 0
+  private counterTimer?: ReturnType<typeof setInterval>
 
   async listCameras(): Promise<CameraDevice[]> {
     if (!navigator.mediaDevices?.enumerateDevices) return []
@@ -52,6 +57,12 @@ export class SmartSpectraSignalSource implements SignalSource {
     if (!this.available) throw new Error('Add VITE_SMARTSPECTRA_API_KEY to a local .env file before using the SDK source.')
     if (!options.cameraId) throw new Error('Select an available camera before starting.')
     await this.stop()
+    const liveTest = await window.breathebreak.getLiveTestConfig()
+    this.liveTestEnabled = liveTest.enabled
+    this.reconnect = new ReconnectionPolicy(retryAttemptsForLiveTest(liveTest.enabled))
+    this.deliveredFrames = 0
+    this.sentFrames = 0
+    if (liveTest.enabled) this.counterTimer = setInterval(() => this.reportLiveTestCounters(), 1_000)
     this.listener = listener
     this.options = options
     this.stopping = false
@@ -76,6 +87,10 @@ export class SmartSpectraSignalSource implements SignalSource {
     sdk.useMediaStream(this.stream)
     sdk.on('validationStatus', (code, _timestampUs, hint) => { this.quality = friendlyQuality(code, hint) })
     sdk.on('metrics', (buffer, timestampUs) => this.receiveMetrics(buffer, timestampUs))
+    sdk.on('frameSentThrough', (sent) => {
+      this.deliveredFrames += 1
+      if (sent) this.sentFrames += 1
+    })
     sdk.on('error', (code, message, retryable) => { void this.handleError(code, message, retryable) })
     try { await sdk.start() } catch (error) { this.release(); throw error }
   }
@@ -129,6 +144,9 @@ export class SmartSpectraSignalSource implements SignalSource {
 
   async stop(): Promise<void> {
     this.stopping = true
+    this.reportLiveTestCounters()
+    if (this.counterTimer) clearInterval(this.counterTimer)
+    this.counterTimer = undefined
     const sdk = this.sdk
     this.sdk = undefined
     if (sdk) { try { await sdk.stop() } catch { /* Cleanup still continues. */ } sdk.destroy() }
@@ -136,6 +154,10 @@ export class SmartSpectraSignalSource implements SignalSource {
     this.stream = undefined
     this.listener = undefined
     this.recovering = false
+  }
+
+  private reportLiveTestCounters(): void {
+    if (this.liveTestEnabled) window.breathebreak.updateLiveTestCounters({ deliveredFrames: this.deliveredFrames, sentFrames: this.sentFrames })
   }
 
   private release(): void {
