@@ -9,3 +9,9 @@ coverage/
 .DS_Store
 Thumbs.db
 .screenshot-build/
+.diagnostics/
+**/.diagnostics/
+private-evidence/
+evidence/private/
+BreatheBreak-Evidence/
+*.ndjson

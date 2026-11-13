@@ -1,0 +1,45 @@
+# R1 live-test readiness runbook
+
+R1 must not begin until Claude explicitly authorizes the live session. This runbook prepares a single controlled BreatheBreak real-SDK check; it is not evidence that the Phase 0 three-minute stability gate has passed.
+
+## Before authorization
+
+1. Stay on `design-redesign` with a clean, checkpointed working tree.
+2. Confirm the API key exists only in the ignored local `.env`; never print or record it.
+3. Confirm Camo USB is available and no other application is using it.
+4. Check and privately record Presage portal usage before the run.
+5. Confirm the intended acceptance duration with Claude. Do not infer three minutes from prior Attempt 3 evidence.
+6. Prepare a private `.diagnostics/` location for sanitized metadata only. Do not record frames, raw breathing rates, chest traces, identifiers, or secrets.
+
+## Authorized run
+
+1. Launch BreatheBreak only after Claude's authorization.
+2. Confirm no camera permission or SDK processing occurs on application launch.
+3. Select **SmartSpectra SDK** and explicitly select Camo by its displayed device entry.
+4. Verify **Start session** remains disabled until camera selection and consent are complete.
+5. Select consent and press **Start session** once.
+6. Confirm the camera-status line says **Camera active**, the LIVE indicator is visible, and the signal-quality row progresses without invented values.
+7. Observe the rate placeholder during warm-up and record whether the required “Measuring…” copy is present.
+8. Run only for the duration authorized by Claude. Record sanitized start/end timestamps, duration, error-event count, rate-sample count, and chest-sample count; do not record sample values.
+9. Keep **Stop session** visible and operable throughout. Press it once at the authorized endpoint.
+10. Confirm the camera indicator clears, camera hardware is released, raw session buffers are cleared, and the recap contains only the approved summary and **Source: SmartSpectra**.
+11. Press **Done** and confirm the app returns to Welcome/Consent without stale readings or guided metadata.
+
+## After the run
+
+1. Check and privately record Presage portal usage after the run.
+2. Compare before/after usage without publishing account data.
+3. Stop immediately and report if any SDK error occurs; do not call that attempt a pass.
+4. Verify the camera is also released if the window is closed or a fatal error occurs.
+5. Keep any sanitized diagnostics private and ignored. Do not commit NDJSON or physiological logs.
+6. Report confirmed observations separately from uncertain boundaries. The three-minute gate remains unverified unless an authorized run directly proves its exact duration and stability.
+
+## Abort conditions
+
+- Camera selection changes or falls back unexpectedly.
+- Start occurs without explicit consent.
+- Stop is unavailable or clipped.
+- Camera remains active after Stop, fatal error, or window close.
+- Raw physiological data, credentials, or identifying data would be written to tracked files.
+- Presage usage cannot be checked before and after.
+- Claude has not explicitly authorized the live session.
