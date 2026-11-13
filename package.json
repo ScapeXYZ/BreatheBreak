@@ -13,7 +13,8 @@
     "test": "vitest run src",
     "screenshots:d2": "node scripts/screenshots/require-simulation.mjs && vite build --config scripts/screenshots/vite.config.mjs && node scripts/screenshots/verify-safe-bundle.mjs && electron scripts/screenshots/d2.cjs",
     "screenshots:d3": "node scripts/screenshots/require-simulation.mjs && vite build --config scripts/screenshots/vite.config.mjs && node scripts/screenshots/verify-safe-bundle.mjs && electron scripts/screenshots/d3.cjs",
-    "screenshots:d4": "node scripts/screenshots/require-simulation.mjs && vite build --config scripts/screenshots/vite.config.mjs && node scripts/screenshots/verify-safe-bundle.mjs && electron scripts/screenshots/d4.cjs"
+    "screenshots:d4": "node scripts/screenshots/require-simulation.mjs && vite build --config scripts/screenshots/vite.config.mjs && node scripts/screenshots/verify-safe-bundle.mjs && electron scripts/screenshots/d4.cjs",
+    "test:layout": "node scripts/screenshots/require-simulation.mjs && vite build --config scripts/screenshots/vite.config.mjs && node scripts/screenshots/verify-safe-bundle.mjs && node scripts/layout/stop-button.cjs"
   },
   "dependencies": {
     "@fontsource/figtree": "^5.3.0",

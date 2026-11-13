@@ -2,7 +2,7 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { App, clearSessionData, finalizeSuccessfulSession, handleFatalSourceError, recordGuidedCompletion } from './App'
+import { App, cameraStatus, clearSessionData, finalizeSuccessfulSession, handleFatalSourceError, recordGuidedCompletion } from './App'
 import { sessionRecorder } from './features/sessions/recorder'
 import { useSession, type Recap } from './store/session'
 
@@ -16,6 +16,7 @@ beforeEach(()=>{const values=new Map<string,string>();Object.defineProperty(glob
 afterEach(()=>{if(root)act(()=>root!.unmount());host?.remove();root=undefined;host=undefined})
 
 describe('session recap UI',()=>{
+ it('reports exact camera states without treating simulation as camera-on',()=>{expect(cameraStatus('smartspectra',false)).toBe('Camera: off');expect(cameraStatus('smartspectra',true)).toBe('Camera: on');expect(cameraStatus('simulation',true)).toBe('Camera: off, simulation')})
  it('closes the pacer and clears both raw stores on a fatal source error',()=>{const closePacer=vi.fn();useSession.setState({phase:'running',startedAt:1,gatedRates:[12],sample:{timestampMs:1,quality:{kind:'ok'},chestTrace:.4},recap:Object.freeze({durationSeconds:1,sampleCount:1,source:'smartspectra',guidedPaceCompleted:false})});sessionRecorder.record({timestampMs:1,quality:{kind:'ok'},chestTrace:.4},12);handleFatalSourceError('fatal',closePacer);recordGuidedCompletion(4,6);expect(closePacer).toHaveBeenCalledOnce();expect(useSession.getState()).toMatchObject({phase:'error',error:'fatal',gatedRates:[],sample:undefined,recap:undefined,startedAt:undefined});expect(sessionRecorder.size).toBe(0)})
  it('manually clears both raw stores and retained recap without changing phase',()=>{useSession.setState({phase:'running',startedAt:1,gatedRates:[12],sample:{timestampMs:1,quality:{kind:'ok'},chestTrace:.4},recap:Object.freeze({durationSeconds:1,sampleCount:1,source:'smartspectra',guidedPaceCompleted:false})});sessionRecorder.record({timestampMs:1,quality:{kind:'ok'},chestTrace:.4},12);clearSessionData();expect(useSession.getState()).toMatchObject({phase:'running',startedAt:1,gatedRates:[],sample:undefined,recap:undefined});expect(sessionRecorder.size).toBe(0)})
  it('summarizes only after success and clears both raw data stores',()=>{useSession.setState({phase:'stopping',source:'smartspectra',startedAt:Date.now()-1000,gatedRates:[10,12],sample:{timestampMs:1,quality:{kind:'ok'},chestTrace:.4}});sessionRecorder.record({timestampMs:1,quality:{kind:'ok'},chestTrace:.4},10);sessionRecorder.recordGuidedCompletion({completedAtMs:2,inhaleSeconds:4,exhaleSeconds:6});finalizeSuccessfulSession();expect(useSession.getState().recap).toMatchObject({averageBreathingRate:11,sampleCount:2,guidedPaceCompleted:true});expect(useSession.getState().gatedRates).toEqual([]);expect(sessionRecorder.size).toBe(0)})

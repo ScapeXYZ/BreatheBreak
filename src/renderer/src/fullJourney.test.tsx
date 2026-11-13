@@ -40,8 +40,10 @@ async function runJourney(width: number, height: number): Promise<void> {
   if (!host) {
     host = document.createElement('div')
     document.body.append(host)
-    root = createRoot(host)
-    await act(async () => root!.render(<App />))
+  root = createRoot(host)
+  await act(async () => root!.render(<App />))
+  expect(document.querySelector('.simulation-disclosure')).toBeNull()
+  expect(document.querySelector('.camera-status')?.textContent).toBe('Camera: off')
   } else {
     const existingConsent = document.querySelector<HTMLInputElement>('.consent-check input')!
     if (existingConsent.checked) act(() => existingConsent.click())
@@ -54,6 +56,7 @@ async function runJourney(width: number, height: number): Promise<void> {
   })
   expect(button('Start session').disabled).toBe(true)
   expectSimulationDisclosure()
+  expect(document.querySelector('.camera-status')?.textContent).toBe('Camera: off, simulation')
 
   const consent = document.querySelector<HTMLInputElement>('.consent-check input')!
   act(() => {
