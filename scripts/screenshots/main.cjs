@@ -64,7 +64,7 @@ async function runViewport({ width, height }) {
     return true
   })()`, true)
   await waitFor(window, `document.body.innerText.toLowerCase().includes('live session')`)
-  await waitFor(window, `document.body.innerText.includes('Signal: ok')`, 12_000)
+  await waitFor(window, `[...document.querySelectorAll('dd')].some((node) => node.textContent?.trim() === 'ok')`, 12_000)
   await capture(window, `session-${width}x${height}.png`)
 
   await window.webContents.executeJavaScript(`(() => {

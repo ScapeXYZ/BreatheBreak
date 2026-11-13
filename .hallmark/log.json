@@ -1,0 +1,31 @@
+[
+ {
+  "imagery": "live garden canvas",
+  "axes": "dark/grotesk-sans/chromatic-teal",
+  "waived": [
+   "mandatory simulation disclosure",
+   "functional camera-active indicator",
+   "29 two fixed glass panels"
+  ],
+  "theme": "ribbon",
+  "shape": "app screen",
+  "footer": "none",
+  "prompt": "BreatheBreak desktop breathing session app",
+  "mode": "redesign",
+  "scope": "app",
+  "hero": "none",
+  "depth": "full",
+  "entry": "design-redesign D1",
+  "sections": [
+   "welcome",
+   "session",
+   "recap",
+   "error"
+  ],
+  "nav": "quiet top bar",
+  "fingerprint": "app-shell/garden/side-panel/recap-ledger",
+  "photos": [],
+  "signature": "breathing garden instrument",
+  "date": "2026-11-13"
+ }
+]

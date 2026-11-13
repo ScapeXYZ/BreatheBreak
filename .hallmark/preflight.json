@@ -1,0 +1,31 @@
+{
+  "preserved": [
+    "consent and privacy copy",
+    "signal source and camera wiring",
+    "phase gates",
+    "session and recap data",
+    "error handling"
+  ],
+  "introduced": [
+    "Ribbon two-in-the-morning tokens",
+    "Instrument Sans and Figtree",
+    "shared desktop shell",
+    "two fixed glass panels",
+    "cyan accent",
+    "garden scheduling hygiene"
+  ],
+  "waivers": [
+    "mandatory simulation disclosure",
+    "functional camera-active indicator"
+  ],
+  "files": [
+    "src/renderer/src/App.tsx",
+    "src/renderer/src/styles.css",
+    "src/renderer/src/tokens.css",
+    "src/renderer/src/base.css",
+    "src/renderer/src/components/GardenCanvas.tsx",
+    "src/renderer/src/main.tsx"
+  ],
+  "scope": "app-screen redesign",
+  "hallmarkCommit": "04977e15f3dfd6ee4b74c887dac3eb52665d6c92"
+}

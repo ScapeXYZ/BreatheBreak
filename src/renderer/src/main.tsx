@@ -1,5 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import '@fontsource/instrument-sans/400.css'
+import '@fontsource/instrument-sans/500.css'
+import '@fontsource/figtree/400.css'
+import '@fontsource/figtree/500.css'
 import { App } from './App'
 import './styles.css'
 

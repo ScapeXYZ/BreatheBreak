@@ -1,0 +1,63 @@
+{
+  "measuredAt": "2026-11-13T02:22:23.563Z",
+  "results": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "welcome": {
+        "noScroll": true,
+        "scrollHeight": 800,
+        "innerHeight": 800,
+        "focusWidth": "2px",
+        "disclosure": true
+      },
+      "sessionNoScroll": true,
+      "cpuPercent": 2.3019217227834634,
+      "renderFrameMs": {
+        "median": 0.19999999972060323,
+        "p95": 0.2999999998137355
+      },
+      "achievedFps": 24.297646165527716,
+      "maxFps": 29.23976608211022,
+      "hiddenFrames": 0,
+      "recapFrames": 0,
+      "contrast": {
+        "body": 16.64566731607179,
+        "muted": 8.04915201488537,
+        "primary": 10.637954941823818,
+        "focus": 12.915907973406082
+      }
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "welcome": {
+        "noScroll": true,
+        "scrollHeight": 900,
+        "innerHeight": 900,
+        "focusWidth": "2px",
+        "disclosure": true
+      },
+      "sessionNoScroll": true,
+      "cpuPercent": 2.1030325862603987,
+      "renderFrameMs": {
+        "median": 0.10000000009313226,
+        "p95": 0.2999999998137355
+      },
+      "achievedFps": 24.53276669725214,
+      "maxFps": 29.23976608211022,
+      "hiddenFrames": 0,
+      "recapFrames": 0,
+      "contrast": {
+        "body": 16.64566731607179,
+        "muted": 8.04915201488537,
+        "primary": 10.637954941823818,
+        "focus": 12.915907973406082
+      }
+    }
+  ]
+}
