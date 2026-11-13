@@ -34,20 +34,24 @@ The selected camera ID is remembered locally. If that exact device disappears, B
 
 `DEV SIMULATION` is an explicit option. It is persistently labelled as synthetic and must not be used as SDK or demo evidence.
 
+The repository contains the real SmartSpectra integration code and a separate deterministic simulation source. Current automated tests, screenshots, visual checks, and D3 performance measurements are simulation-only. They do not verify real-device permissions, camera lifecycle behavior, live-SDK rendering performance, or the Phase 0 three-minute stability gate. That stability gate remains unverified.
+
 ## Metrics and quality
 
-The adapter requests only `CHEST_BREATHING`, `BREATHING_RATE`, and optional `ABDOMEN_BREATHING`. It does not request unavailable metrics or `TALKING`, and never calls `requestInsight`. Chest trace drives bloom size; a quality-gated rate drives tempo/color. Missing abdomen data does not block the experience.
+The adapter requests only `CHEST_BREATHING`, `BREATHING_RATE`, and optional `ABDOMEN_BREATHING`. It does not request unavailable metrics or `TALKING`, and never calls `requestInsight`. Only a valid, gated chest trace drives the measured flower; the gated breathing rate is displayed and summarized separately. Missing abdomen data does not block the experience.
 
-Rates appear only after an eight-second warm-up, an SDK-good quality state, stable/confident output, and a 445 breaths/minute range check. Known SDK positioning and lighting hints are translated into neutral, non-medical guidance. Recap baseline statistics use median and median absolute deviation.
+Rates appear only after an eight-second warm-up, a good signal-quality state, stable/confident output, and a 4–45 breaths/minute range check. Known SDK positioning and lighting hints are translated into neutral, non-medical guidance.
 
-Retryable errors, including SDK error 14 (sustained low frame rate), show **Reconnecting&** while preserving the last safe garden state. Recovery uses at most three attempts with 500 ms, 1 s, and 2 s delays.
+After a successful Stop, the recap displays session elapsed time, the arithmetic mean of valid gated breathing-rate readings, and the valid-reading count. When no valid readings exist, it reports that there was not enough valid signal. Raw physiological measurements are cleared after the approved immutable recap summary is created; only that summary and its accurate source disclosure remain for the recap.
+
+Retryable errors, including SDK error 14 (sustained low frame rate), show **Reconnecting** while preserving the last safe garden state. Recovery uses at most three attempts with 500 ms, 1 s, and 2 s delays.
 
 ## Privacy and security
 
 - BreatheBreak does not record or persist camera frames.
 - A live camera stream is passed to the SmartSpectra SDK only during an explicitly started session.
 - SDK telemetry is disabled by this app.
-- Camera selection is stored locally; breathing samples are held in memory for the active session and recap only.
+- Camera selection is stored locally. Raw breathing samples are held in memory only for the active session and are cleared on successful Stop, manual clearing, startup/Stop failure, terminal source errors, and teardown. The recap retains only its approved immutable summary.
 - Electron keeps `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`, navigation locked down, and uses the official SDK MessagePort IPC bridge.
 
 Review SmartSpectra's own terms and privacy documentation before distributing a build; its SDK and service are separately licensed.
@@ -56,7 +60,7 @@ Review SmartSpectra's own terms and privacy documentation before distributing a 
 
 - `src/main`: Electron window and official `bindSmartSpectraIpc` binding.
 - `src/preload`: BreatheBreak's narrow bridge plus the official SDK preload bridge.
-- `src/renderer/src/signals`: typed simulation and real SDK adapters, gates, camera cleanup, reconnection, and baseline utilities.
+- `src/renderer/src/signals`: typed simulation and real SDK adapters, measurement gates, camera cleanup, and reconnection.
 - `src/renderer/src/store`: deterministic session state and recap.
 
 Licensed under the [MIT License](LICENSE).

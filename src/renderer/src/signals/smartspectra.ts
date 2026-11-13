@@ -37,7 +37,7 @@ export class SmartSpectraSignalSource implements SignalSource {
   private stream?: MediaStream
   private listener?: SignalListener
   private options?: StartOptions
-  private quality: SignalQuality = { kind: 'warming', message: 'Preparing the signal&' }
+  private quality: SignalQuality = { kind: 'warming', message: 'Preparing the signal' }
   private warmup = new WarmupGate()
   private reconnect = new ReconnectionPolicy()
   private stopping = false
@@ -64,7 +64,7 @@ export class SmartSpectraSignalSource implements SignalSource {
     const cameras = await this.listCameras()
     if (!cameras.some((camera) => camera.id === cameraId)) throw new Error('The selected camera is no longer available. Choose another camera.')
     this.warmup = new WarmupGate()
-    this.quality = { kind: 'warming', message: 'Preparing the signal&' }
+    this.quality = { kind: 'warming', message: 'Preparing the signal' }
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { deviceId: { exact: cameraId }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } })
     const sdk = new SmartSpectraSDK({
       apiKey: import.meta.env.VITE_SMARTSPECTRA_API_KEY,
@@ -86,7 +86,7 @@ export class SmartSpectraSignalSource implements SignalSource {
     const rate = breathing.rate.at(-1)
     const chest = breathing.upperTrace.at(-1)
     const abdomen = breathing.lowerTrace.at(-1)
-    const quality = this.warmup.isReady() ? this.quality : { kind: 'warming' as const, message: 'Warming up the breathing signal&' }
+    const quality = this.warmup.isReady() ? this.quality : { kind: 'warming' as const, message: 'Warming up the breathing signal' }
     this.listener?.({
       timestampMs: timestampUs / 1000,
       breathingRate: rate ? { value: rate.value ?? 0, confidence: rate.confidence ?? 0, stable: rate.stable ?? false } : undefined,
