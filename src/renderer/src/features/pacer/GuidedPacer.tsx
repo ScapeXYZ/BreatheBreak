@@ -1,0 +1,19 @@
+import { useEffect, useRef, useState } from 'react'
+import { PacerController, systemPacerClock, type PacerClock, type PacerSnapshot } from './pacer'
+const initial: PacerSnapshot={status:'ready',segment:'settle',breathPhase:'inhale',countdown:3,paceElapsedMs:0}
+export function GuidedPacer({open,onClose,onComplete,clock=systemPacerClock}:{open:boolean;onClose():void;onComplete(inhaleSeconds:number,exhaleSeconds:number):void;clock?:PacerClock}):JSX.Element|null{
+ const [inhale,setInhale]=useState(4),[exhale,setExhale]=useState(6),[snapshot,setSnapshot]=useState(initial);const controller=useRef<PacerController>();
+ useEffect(()=>()=>controller.current?.dispose(),[])
+ useEffect(()=>{if(!open){controller.current?.dispose();controller.current=undefined;setSnapshot(initial)}},[open])
+ useEffect(()=>{if(!open)return;const key=(event:KeyboardEvent):void=>{const target=event.target as HTMLElement|null;if(target?.matches('input, select, textarea, button, [contenteditable=true]'))return;if(event.key==='Escape'){event.preventDefault();onClose()}else if(event.code==='Space'&&(snapshot.status==='running'||snapshot.status==='paused')){event.preventDefault();controller.current?.togglePause()}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[open,onClose,snapshot.status])
+ if(!open)return null
+ const start=():void=>{const next=new PacerController(clock,inhale,exhale,setSnapshot,()=>onComplete(inhale,exhale));controller.current=next;next.start()};const toggle=():void=>controller.current?.togglePause();const phase=snapshot.segment==='settle'?'Settle':snapshot.segment==='finish'?'Finish':snapshot.breathPhase==='inhale'?'Breathe in':'Breathe out'
+ return <section className="pacer-overlay" role="dialog" aria-modal="true" aria-labelledby="pacer-title" data-pacer-status={snapshot.status} data-pacer-phase={snapshot.breathPhase}>
+  <div className="pacer-shell"><header className="pacer-header"><div><h2 id="pacer-title">Breathing pace</h2><p className="guided-label">GUIDED, not measured</p></div><button className="icon-button" onClick={onClose} aria-label="Close guided pacer">×</button></header>
+  <nav className="pacer-progress" aria-label="Guided pace progress"><span className={snapshot.segment==='settle'?'current':''}>Settle</span><span className={snapshot.segment==='pace'?'current':''}>Pace · 60 seconds</span><span className={snapshot.segment==='finish'?'current':''}>Finish</span></nav>
+  <div className="pacer-visual" aria-live="polite"><div className="pacer-ring pacer-ring--outer"/><div className="pacer-ring pacer-ring--middle"/><div className="pacer-ring pacer-ring--inner"/><div className="pacer-readout"><p className="pacer-instruction">{snapshot.status==='paused'?'Paused':phase}</p><strong>{snapshot.status==='complete'?'Done':snapshot.countdown}</strong>{snapshot.segment==='pace'&&<p>{Math.min(60,Math.floor(snapshot.paceElapsedMs/1000))} / 60 seconds</p>}</div></div>
+  {snapshot.status==='ready'?<><div className="pacer-settings"><label>Inhale<select value={inhale} onChange={e=>setInhale(Number(e.target.value))}>{[3,4,5,6,7,8].map(v=><option key={v} value={v}>{v} seconds</option>)}</select></label><label>Exhale<select value={exhale} onChange={e=>setExhale(Number(e.target.value))}>{[3,4,5,6,7,8].map(v=><option key={v} value={v}>{v} seconds</option>)}</select></label></div><button className="button button--primary pacer-primary" onClick={start}>Start guided pacing</button></>:<div className="pacer-actions">{snapshot.status!=='complete'&&<button className="button button--secondary" onClick={toggle}>{snapshot.status==='paused'?'Resume':'Pause'}</button>}<button className="button button--secondary" onClick={onClose}>{snapshot.status==='complete'?'Close':'End guide'}</button></div>}
+  <p className="pacer-note">Follow the guide at a pace that feels comfortable. Stop whenever you choose.</p></div>
+ </section>
+}
+
