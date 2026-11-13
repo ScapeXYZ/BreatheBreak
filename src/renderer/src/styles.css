@@ -6,7 +6,7 @@
 /* Product waiver · functional camera-active indicator stays visible during real sessions */
 /* Hallmark · waive 29 · two fixed glass panels · consent and live controls need separation from the animated garden */
 /* Hallmark · answered F24 · glass panels use a restrained edge and shadow to remain legible over the canvas */
-@import url("./tokens.css");
+    @import url("./tokens.css");
 @import url("./base.css");
 @tailwind base;
 @tailwind components;
@@ -24,6 +24,8 @@ body { min-height: 100vh; min-height: 100dvh; }
 .app--simulation .app-stage { height: calc(100dvh - 68px - var(--banner-height)); }
 .welcome-screen { width: 100%; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr); gap: clamp(var(--space-xl), 6vw, var(--space-3xl)); align-items: center; }
 .welcome-copy { padding-left: clamp(0px, 3vw, var(--space-xl)); }
+.preview-flower { position: relative; width: 180px; height: 112px; margin-bottom: var(--space-md); border: var(--rule-hair) solid var(--color-rule-2); border-radius: var(--radius-part); overflow: clip; background: var(--garden-ground); }
+.preview-flower span { position: absolute; inset: auto var(--space-sm) var(--space-xs) auto; color: var(--color-ink-2); font-size: var(--text-xs); }
 .welcome-copy h1 { max-width: 9ch; font-size: clamp(3.5rem, 6.6vw, 6.5rem); line-height: 0.94; }
 .welcome-lede { max-width: 48ch; margin-top: var(--space-xl); color: var(--color-ink-2); font-size: var(--text-lg); line-height: 1.55; }
 .privacy-rule { margin-top: var(--space-2xl); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: var(--rule-hair) solid var(--color-rule); color: var(--color-muted); font-size: var(--text-sm); }
@@ -52,6 +54,9 @@ body { min-height: 100vh; min-height: 100dvh; }
 .garden-panel { position: relative; min-width: 0; min-height: 0; }
 .garden-canvas { display: block; width: 100%; height: 100%; }
 .garden-caption { position: absolute; inset: auto auto var(--space-lg) var(--space-lg); max-width: 32ch; color: var(--color-ink-2); font-size: var(--text-sm); }
+.quality-control { margin-top: var(--space-md); display: grid; grid-template-columns: 1fr 112px; gap: var(--space-sm); align-items: center; color: var(--color-muted); font-size: var(--text-sm); }
+.quality-control select { height: 36px; padding-inline: var(--space-sm); border: var(--rule-hair) solid var(--color-muted); border-radius: var(--radius-part); background: var(--color-paper-3); color: var(--color-ink); }
+.quality-control select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
 .session-panel { min-width: 0; padding: var(--space-xl); border-width: 0 0 0 var(--rule-hair); border-radius: 0; display: flex; flex-direction: column; }
 .live-state { color: var(--color-accent); font-size: var(--text-sm); font-weight: 500; }
 .session-heading h2 { margin-top: var(--space-xs); font-size: var(--text-2xl); }
@@ -156,4 +161,3 @@ body { min-height: 100vh; min-height: 100dvh; }
 @media (prefers-reduced-motion: reduce) {
   .pacer-ring { transition: opacity 150ms linear; }
 }
-

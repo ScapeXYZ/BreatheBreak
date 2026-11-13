@@ -1,0 +1,144 @@
+{
+  "measuredAt": "2026-11-13T03:44:33.074Z",
+  "methodology": "DEV SIMULATION only; Electron app metrics sampled after a 3 second tier run; no camera or SDK activated.",
+  "results": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "tier": "auto",
+      "particles": {
+        "min": 620,
+        "max": 620
+      },
+      "renderFrameMs": {
+        "median": 1.2000000001862645,
+        "p95": 1.900000000372529
+      },
+      "achievedFps": 23.325273787512444,
+      "maxFps": 29.94011976047937,
+      "hiddenFrames": 0,
+      "recapFrames": 0,
+      "cpuPercent": 3.227166710011625,
+      "d1BaselineCpuPercent": 2.302,
+      "cpuIncreasePoints": 0.925166710011625,
+      "workingSetMb": 451.4921875
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "tier": "high",
+      "particles": {
+        "min": 620,
+        "max": 620
+      },
+      "renderFrameMs": {
+        "median": 1.2999999998137355,
+        "p95": 1.900000000372529
+      },
+      "achievedFps": 22.688110281447447,
+      "maxFps": 29.94011976047937,
+      "hiddenFrames": 0,
+      "recapFrames": 0,
+      "cpuPercent": 3.1042079401185476,
+      "d1BaselineCpuPercent": 2.302,
+      "cpuIncreasePoints": 0.8022079401185476,
+      "workingSetMb": 436.45703125
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "tier": "low",
+      "particles": {
+        "min": 240,
+        "max": 240
+      },
+      "renderFrameMs": {
+        "median": 0.5,
+        "p95": 1
+      },
+      "achievedFps": 21.904870277651337,
+      "maxFps": 29.94011976047937,
+      "hiddenFrames": 0,
+      "recapFrames": 0,
+      "cpuPercent": 2.3678987214695963,
+      "d1BaselineCpuPercent": 2.302,
+      "cpuIncreasePoints": 0.0658987214695963,
+      "workingSetMb": 444.78125
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "tier": "auto",
+      "particles": {
+        "min": 620,
+        "max": 620
+      },
+      "renderFrameMs": {
+        "median": 1.2999999998137355,
+        "p95": 2.3999999994412065
+      },
+      "achievedFps": 23.214993488477443,
+      "maxFps": 29.94011976047937,
+      "hiddenFrames": 0,
+      "recapFrames": 0,
+      "cpuPercent": 3.230719307399921,
+      "d1BaselineCpuPercent": 2.103,
+      "cpuIncreasePoints": 1.127719307399921,
+      "workingSetMb": 465.2734375
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "tier": "high",
+      "particles": {
+        "min": 620,
+        "max": 620
+      },
+      "renderFrameMs": {
+        "median": 1,
+        "p95": 1.7999999998137355
+      },
+      "achievedFps": 22.577879394112603,
+      "maxFps": 29.94011976047937,
+      "hiddenFrames": 0,
+      "recapFrames": 0,
+      "cpuPercent": 2.821476262298515,
+      "d1BaselineCpuPercent": 2.103,
+      "cpuIncreasePoints": 0.7184762622985148,
+      "workingSetMb": 450.1484375
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "tier": "low",
+      "particles": {
+        "min": 240,
+        "max": 240
+      },
+      "renderFrameMs": {
+        "median": 0.6000000005587935,
+        "p95": 1.099999999627471
+      },
+      "achievedFps": 22.082554781722447,
+      "maxFps": 29.94011976047937,
+      "hiddenFrames": 0,
+      "recapFrames": 0,
+      "cpuPercent": 2.6018528468763527,
+      "d1BaselineCpuPercent": 2.103,
+      "cpuIncreasePoints": 0.49885284687635245,
+      "workingSetMb": 449.95703125
+    }
+  ]
+}
