@@ -1,0 +1,96 @@
+{
+  "measuredAt": "2026-11-13T14:54:10.456Z",
+  "methodology": "DEV SIMULATION only; camera and SDK excluded by safe-bundle audit.",
+  "evidence": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "mode": "no-data",
+      "labels": true,
+      "noData": true,
+      "simulation": true,
+      "focused": true,
+      "withinViewport": true,
+      "reducedMotion": false,
+      "expectData": false,
+      "expectReduced": false
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "mode": "valid",
+      "labels": true,
+      "noData": false,
+      "simulation": true,
+      "focused": true,
+      "withinViewport": true,
+      "reducedMotion": false,
+      "expectData": true,
+      "expectReduced": false
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "mode": "reduced",
+      "labels": true,
+      "noData": true,
+      "simulation": true,
+      "focused": true,
+      "withinViewport": true,
+      "reducedMotion": true,
+      "expectData": false,
+      "expectReduced": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "mode": "no-data",
+      "labels": true,
+      "noData": true,
+      "simulation": true,
+      "focused": true,
+      "withinViewport": true,
+      "reducedMotion": false,
+      "expectData": false,
+      "expectReduced": false
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "mode": "valid",
+      "labels": true,
+      "noData": false,
+      "simulation": true,
+      "focused": true,
+      "withinViewport": true,
+      "reducedMotion": false,
+      "expectData": true,
+      "expectReduced": false
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "mode": "reduced",
+      "labels": true,
+      "noData": true,
+      "simulation": true,
+      "focused": true,
+      "withinViewport": true,
+      "reducedMotion": true,
+      "expectData": false,
+      "expectReduced": true
+    }
+  ]
+}

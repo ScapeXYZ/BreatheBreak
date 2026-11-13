@@ -1,0 +1,48 @@
+{
+  "measuredAt": "2026-11-13T15:05:19.470Z",
+  "methodology": "DEV SIMULATION only; camera and SDK excluded by safe-bundle audit.",
+  "evidence": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "mode": "guided",
+      "labels": true,
+      "noData": false,
+      "simulation": true,
+      "focused": true,
+      "withinViewport": true,
+      "reducedMotion": false,
+      "expectData": true,
+      "expectReduced": false,
+      "guided": {
+        "completed": true,
+        "qualified": true,
+        "separate": true,
+        "visible": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "mode": "guided",
+      "labels": true,
+      "noData": false,
+      "simulation": true,
+      "focused": true,
+      "withinViewport": true,
+      "reducedMotion": false,
+      "expectData": true,
+      "expectReduced": false,
+      "guided": {
+        "completed": true,
+        "qualified": true,
+        "separate": true,
+        "visible": true
+      }
+    }
+  ]
+}
