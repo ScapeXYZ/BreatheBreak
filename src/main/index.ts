@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { bindSmartSpectraIpc } from '@smartspectra/node-sdk/main'
-import { isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH, liveTestDiagnosticRecord, type LiveTestCounters, validLiveTestCounters } from '../shared/liveTest'
+import { isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH, liveTestDiagnosticRecord, liveTestEventRecord, type LiveTestCounters, validLiveTestCounters, validLiveTestEvent } from '../shared/liveTest'
 
 const liveTestEnabled = isLiveTestEnabled(process.env.BREATHEBREAK_LIVE_TEST)
 const diagnosticPath = resolve(process.cwd(), LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH)
@@ -48,6 +48,9 @@ app.whenReady().then(() => {
   ipcMain.handle('app:get-live-test-config', () => ({ enabled: liveTestEnabled }))
   ipcMain.on('app:update-live-test-counters', (_event, counters: unknown) => {
     if (liveTestEnabled && validLiveTestCounters(counters)) liveTestCounters = counters
+  })
+  ipcMain.on('app:record-live-test-event', (_event, event: unknown) => {
+    if (liveTestEnabled && validLiveTestEvent(event)) appendFileSync(diagnosticPath, JSON.stringify(liveTestEventRecord(new Date(), event)) + '\n', { encoding: 'utf8' })
   })
   startLiveTestDiagnostics()
   createWindow()

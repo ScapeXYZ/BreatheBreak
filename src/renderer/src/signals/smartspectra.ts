@@ -150,10 +150,14 @@ export class SmartSpectraSignalSource implements SignalSource {
     const sdk = this.sdk
     this.sdk = undefined
     if (sdk) { try { await sdk.stop() } catch { /* Cleanup still continues. */ } sdk.destroy() }
-    stopMediaStream(this.stream)
+    this.releaseMediaStream()
     this.stream = undefined
     this.listener = undefined
     this.recovering = false
+  }
+
+  private releaseMediaStream(): void {
+    if (stopMediaStream(this.stream) > 0 && this.liveTestEnabled) window.breathebreak.recordLiveTestEvent('media-tracks-stopped')
   }
 
   private reportLiveTestCounters(): void {
@@ -164,7 +168,7 @@ export class SmartSpectraSignalSource implements SignalSource {
     const sdk = this.sdk
     this.sdk = undefined
     if (sdk) { void sdk.stop().catch(() => undefined); sdk.destroy() }
-    stopMediaStream(this.stream)
+    this.releaseMediaStream()
     this.stream = undefined
   }
 }

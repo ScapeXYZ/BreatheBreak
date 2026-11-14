@@ -4,6 +4,9 @@ export const LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH = '.diagnostics/r1-live-test.ndj
 
 export type LiveTestCounters = Readonly<{ deliveredFrames: number; sentFrames: number }>
 export type LiveTestDiagnosticRecord = Readonly<{ timestamp: string; deliveredFrames: number; sentFrames: number; cpuPercent: number }>
+export const LIVE_TEST_RELEASE_EVENT = 'media-tracks-stopped' as const
+export type LiveTestEvent = typeof LIVE_TEST_RELEASE_EVENT
+export type LiveTestEventRecord = Readonly<{ timestamp: string; event: LiveTestEvent }>
 
 export function isLiveTestEnabled(value: string | undefined): boolean {
   return value === LIVE_TEST_SENTINEL
@@ -24,4 +27,12 @@ export function validLiveTestCounters(value: unknown): value is LiveTestCounters
 
 export function liveTestDiagnosticRecord(timestamp: Date, counters: LiveTestCounters, cpuPercent: number): LiveTestDiagnosticRecord {
   return Object.freeze({ timestamp: timestamp.toISOString(), deliveredFrames: counters.deliveredFrames, sentFrames: counters.sentFrames, cpuPercent })
+}
+
+export function liveTestEventRecord(timestamp: Date, event: LiveTestEvent): LiveTestEventRecord {
+  return Object.freeze({ timestamp: timestamp.toISOString(), event })
+}
+
+export function validLiveTestEvent(value: unknown): value is LiveTestEvent {
+  return value === LIVE_TEST_RELEASE_EVENT
 }

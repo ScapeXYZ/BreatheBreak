@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_SENTINEL, liveTestDiagnosticRecord, retryAttemptsForLiveTest, validLiveTestCounters } from './liveTest'
+import { isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_RELEASE_EVENT, LIVE_TEST_SENTINEL, liveTestDiagnosticRecord, liveTestEventRecord, retryAttemptsForLiveTest, validLiveTestCounters, validLiveTestEvent } from './liveTest'
 
 describe('R1 live-test safety', () => {
   it('requires the exact explicit sentinel and rejects accidental values', () => {
@@ -23,5 +23,10 @@ describe('R1 live-test safety', () => {
     expect(validLiveTestCounters({ deliveredFrames: 20, sentFrames: 18 })).toBe(true)
     expect(validLiveTestCounters({ deliveredFrames: 1, sentFrames: 2 })).toBe(false)
     expect(validLiveTestCounters({ deliveredFrames: 1, sentFrames: 1, breathingRate: 12 })).toBe(false)
+  })
+  it('allowlists a timestamp-only media release event', () => {
+    expect(validLiveTestEvent(LIVE_TEST_RELEASE_EVENT)).toBe(true)
+    expect(validLiveTestEvent('breathing-rate')).toBe(false)
+    expect(liveTestEventRecord(new Date('2026-11-14T00:00:00Z'), LIVE_TEST_RELEASE_EVENT)).toEqual({ timestamp: '2026-11-14T00:00:00.000Z', event: 'media-tracks-stopped' })
   })
 })

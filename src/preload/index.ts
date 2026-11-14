@@ -6,5 +6,6 @@ import '../../node_modules/@smartspectra/node-sdk/js/preload/index.js'
 contextBridge.exposeInMainWorld('breathebreak', {
   getRuntimeInfo: (): Promise<{ platform: string; version: string }> => ipcRenderer.invoke('app:get-runtime-info'),
   getLiveTestConfig: (): Promise<{ enabled: boolean }> => ipcRenderer.invoke('app:get-live-test-config'),
-  updateLiveTestCounters: (counters: { deliveredFrames: number; sentFrames: number }): void => ipcRenderer.send('app:update-live-test-counters', counters)
+  updateLiveTestCounters: (counters: { deliveredFrames: number; sentFrames: number }): void => ipcRenderer.send('app:update-live-test-counters', counters),
+  recordLiveTestEvent: (event: 'media-tracks-stopped'): void => ipcRenderer.send('app:record-live-test-event', event)
 })

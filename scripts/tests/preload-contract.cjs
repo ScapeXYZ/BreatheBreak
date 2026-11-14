@@ -26,7 +26,8 @@ async function verifyProductionPreloadContract() {
       breathebreak: {
         runtime: typeof window.breathebreak?.getRuntimeInfo,
         liveTest: typeof window.breathebreak?.getLiveTestConfig,
-        counters: typeof window.breathebreak?.updateLiveTestCounters
+        counters: typeof window.breathebreak?.updateLiveTestCounters,
+        releaseEvent: typeof window.breathebreak?.recordLiveTestEvent
       },
       sdk: {
         attach: typeof window.__smartspectraBridge?.attach,
@@ -39,7 +40,7 @@ async function verifyProductionPreloadContract() {
       liveTestEnabled: null
     })`, true)
     contract.liveTestEnabled = (await window.webContents.executeJavaScript('window.breathebreak.getLiveTestConfig()', true)).enabled
-    const expectedFunctions = ['runtime', 'liveTest', 'counters']
+    const expectedFunctions = ['runtime', 'liveTest', 'counters', 'releaseEvent']
     for (const key of expectedFunctions) if (contract.breathebreak[key] !== 'function') throw new Error(`Missing breathebreak.${key} bridge function`)
     for (const [key, value] of Object.entries(contract.sdk)) if (value !== 'function') throw new Error(`Missing SDK preload ${key} bridge function`)
     if (contract.rendererRequire !== 'undefined' || contract.rendererProcess !== 'undefined') throw new Error('Renderer unexpectedly has Node globals')

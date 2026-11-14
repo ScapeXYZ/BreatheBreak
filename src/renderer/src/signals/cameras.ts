@@ -10,4 +10,4 @@ export function resolveSelectedCamera(cameras: CameraDevice[], rememberedId?: st
   return cameras[0]?.id
 }
 
-export function stopMediaStream(stream?: MediaStream): void { stream?.getTracks().forEach((track) => track.stop()) }
+export function stopMediaStream(stream?: MediaStream): number { const tracks=stream?.getTracks()??[];tracks.forEach((track)=>track.stop());return tracks.length }

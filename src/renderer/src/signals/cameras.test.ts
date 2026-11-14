@@ -12,7 +12,7 @@ describe('camera selection and cleanup', () => {
   it('fails closed instead of falling back when a remembered camera is missing', () => { expect(resolveSelectedCamera(cameras, 'missing')).toBeUndefined() })
   it('stops every track during cleanup', () => {
     const tracks = [{ stop: vi.fn() }, { stop: vi.fn() }]
-    stopMediaStream({ getTracks: () => tracks } as unknown as MediaStream)
+    expect(stopMediaStream({ getTracks: () => tracks } as unknown as MediaStream)).toBe(2)
     expect(tracks.every((track) => track.stop.mock.calls.length === 1)).toBe(true)
   })
 })
