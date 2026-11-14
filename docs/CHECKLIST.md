@@ -1,45 +1,34 @@
-# BreatheBreak authoritative checklist
+# Reset Receipt migration checklist
 
-This checklist replaces no prior tracker and does not reconstruct the unavailable 59-item list. Status is evidence-based as of November 13, 2026. `NOT VERIFIED` means the acceptance condition is absent, incomplete, or lacks direct evidence.
+Status is evidence-based as of November 14, 2026. `NOT VERIFIED` means the requirement is not implemented or lacks direct evidence. A documentation definition is not evidence that product behavior exists.
 
 ## MUST
 
 | Item | Status | Evidence |
 | --- | --- | --- |
-| Checkpoint | VERIFIED | D4 and integration work are checkpointed on `design-redesign` in commits `7637458`, `4af0d79`, and `a0749e1`; final readiness documentation is checkpointed separately. |
-| Real SDK live check in BreatheBreak | NOT VERIFIED | Real adapter code compiles, but BreatheBreak has not completed an authorized real-device acceptance run. Phase 0's three-minute stability gate remains unverified. |
-| Stop button always visible | VERIFIED — simulation only | `screenshots/d3/performance.json` records `controlsVisible: true` for Auto, High, and Low at 1280×800 and 1440×900. No real-device UI run is claimed. |
-| Rate placeholder — with Measuring… | NOT VERIFIED | The live UI shows an em dash and supporting gate copy, but does not currently show the required “Measuring…” text. |
-| Camera status line | VERIFIED — simulation/code | `src/renderer/src/App.tsx` renders “Camera active” for SmartSpectra and “Simulation running” for simulation. Simulation screenshots exist; real-device presentation remains unverified. |
-| Signal-quality indicator | VERIFIED — simulation/code | The live Signal row renders the current quality message/kind. D1–D3 simulation screenshots and the full-journey test exercise it. |
-| Precise privacy header copy | NOT VERIFIED | The current header says “Private by design, video is not recorded,” but no authoritative acceptance copy is present in the repository. |
-| Data Handling panel | NOT VERIFIED | No approved Data Handling panel is implemented or evidenced. |
-| `PRIVACY.md` | NOT VERIFIED | File is absent. |
-| `SDK_INTEGRATION.md` | NOT VERIFIED | File is absent. |
-| README | VERIFIED | `README.md` distinguishes real integration code, simulation evidence, recap handling, and unverified real-device gates. |
-| `CLAIMS.md` claim-to-evidence table | NOT VERIFIED | File is absent. |
-| Demo video | NOT VERIFIED | No approved demo video is tracked. |
-| Screenshots | VERIFIED — simulation only | D1–D4 evidence exists under `screenshots/after`, `screenshots/d2`, `screenshots/d3`, and `screenshots/d4` at both target resolutions. |
-| Cover image | NOT VERIFIED | No approved cover image is identified. |
-| DEV post draft | NOT VERIFIED | No draft is identified. |
-| Repository pushed | NOT VERIFIED | No push is authorized by this task; private backup requires explicit user confirmation after the security gate. |
-
-## SHOULD
-
-| Item | Status | Evidence |
-| --- | --- | --- |
-| Flower density pass, maximum 60 minutes | NOT VERIFIED | D3 density is visually evidenced at bounded quality tiers, but the product-lead pass/timebox is not recorded. |
-| Recorded-real-session replay, only with explicit user approval of physiological data | NOT VERIFIED | No approval or replay artifact exists. Private physiological evidence must not be imported by default. |
-| Agent session upload | NOT VERIFIED | No approved upload evidence exists. |
+| Reset Receipt product definition | VERIFIED — documentation | `docs/PRODUCT.md` defines the bounded product, receipt calculation, fallback copy, and deferred scope. |
+| 60-second live reset | PARTIAL — simulation only | The existing guided pacer completes through its real 60-second mechanism in the full-journey test, but it is not yet presented as the complete Reset Receipt flow and has no authorized real-device verification. |
+| Start-vs-end receipt | NOT VERIFIED | The current recap still reports elapsed time, arithmetic mean, and reading count. Median start/end calculation and the six-reading rule are not implemented. |
+| Receipt image export | NOT VERIFIED | No export behavior or evidence exists. |
+| Three-step first-run guide | NOT VERIFIED | No three-step onboarding flow or evidence exists. |
+| Reset Receipt product strings | VERIFIED — code | Window title, primary UI brand, README, and package display name use “Reset Receipt”; internal identifiers remain unchanged. |
+| Auto-only flower control | VERIFIED — code/test | The live flower is fixed to Auto and no user-facing quality selector is rendered. Existing bounded Auto adaptation tests remain in place. |
+| Stop button always visible | VERIFIED — simulation browser test | `npm run test:layout` asserts the sticky Stop button is inside the viewport and operable at 1280×720, 1280×800, 1440×900, and 1920×1080. Real-device presentation is not claimed. |
+| Rate placeholder | VERIFIED — simulation/code | The live rate shows an em dash and “Measuring…” until a valid gated rate exists. |
+| Camera status line | VERIFIED — code/simulation | Exact states are `Camera: off`, `Camera: on`, and `Camera: off, simulation`; real-device presentation remains unverified. |
+| Signal-quality indicator | VERIFIED — code/simulation | The live Signal row renders the current gated quality kind or neutral guidance. |
+| Privacy header copy | VERIFIED — code | Header copy is exactly “This app does not save video.” |
+| Raw-session cleanup | VERIFIED — tests | Successful Stop creates the approved immutable current recap before clearing raw stores; fatal-error and manual-clear regression tests also pass. The new receipt summary remains future work. |
+| Track-release diagnostic event | VERIFIED — code/test | Authorized live-test diagnostics allowlist a timestamped `media-tracks-stopped` event when an acquired stream is released. No real retry has verified the event. |
+| Real SDK Reset Receipt verification | NOT VERIFIED | No SDK session is authorized by this migration. Phase 0 stability and the new product flow remain unverified on real hardware. |
 
 ## DEFER
 
 | Item | Status | Evidence |
 | --- | --- | --- |
-| Windows installer | DEFERRED | Explicitly deferred by product lead. |
-| Recap image export | DEFERRED | Explicitly deferred by product lead. |
-| TALKING | DEFERRED | Explicitly deferred; the adapter does not request this metric. |
-| Abdomen layer | DEFERRED | Explicitly deferred; abdomen remains optional and does not drive the current visualization. |
-| Pulse/HRV | DEFERRED | Explicitly deferred; these metrics are not requested. |
-| Settings page | DEFERRED | Explicitly deferred by product lead. |
-| Pixel-level E2E | DEFERRED | Explicitly deferred; current functional E2E uses jsdom and visual evidence uses the simulation-only Electron harness. |
+| Abdomen layer | DEFERRED | Explicitly deferred for this migration. |
+| Recorded-session replay | DEFERRED | Explicitly deferred; private physiological data must not be imported without approval. |
+| Settings | DEFERRED | Explicitly deferred for this migration. |
+| Windows installer | DEFERRED | Explicitly deferred for this migration. |
+| Pulse | DEFERRED | Explicitly deferred; the adapter does not request pulse. |
+| Flower density work | DEFERRED | Explicitly deferred; the existing Auto controller remains unchanged. |

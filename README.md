@@ -1,6 +1,6 @@
-# BreatheBreak
+# Reset Receipt
 
-BreatheBreak is a consent-first Electron night-garden visualization driven by breathing signals. Phase 2 integrates SmartSpectra SDK 3.5.0 while preserving the clearly labelled synthetic development source.
+Reset Receipt is a consent-first Electron prototype for a 60-second guided reset followed by a measured start-vs-end breathing receipt. The current D1–D4 baseline integrates SmartSpectra SDK 3.5.0 and a clearly labelled synthetic development source; the target median receipt and image export remain unimplemented.
 
 This is a non-medical visualization. It does not produce health, stress, diagnostic, or medical scores.
 
@@ -30,7 +30,7 @@ SmartSpectra is the default source, but no processing or camera request occurs a
 2. review and select the consent checkbox.
 3. explicitly click **Start session**.
 
-The selected camera ID is remembered locally. If that exact device disappears, BreatheBreak fails closed and asks for a new selection; it does not silently switch cameras. Camera tracks are stopped on Stop, renderer/window teardown, startup errors, and terminal SDK errors. A real device run is still required to verify OS-level permission and lifecycle behavior.
+The selected camera ID is remembered locally. If that exact device disappears, Reset Receipt fails closed and asks for a new selection; it does not silently switch cameras. Camera tracks are stopped on Stop, renderer/window teardown, startup errors, and terminal SDK errors. A real device run is still required to verify OS-level permission and lifecycle behavior.
 
 `DEV SIMULATION` is an explicit option. It is persistently labelled as synthetic and must not be used as SDK or demo evidence.
 
@@ -42,13 +42,13 @@ The adapter requests only `CHEST_BREATHING`, `BREATHING_RATE`, and optional `ABD
 
 Rates appear only after an eight-second warm-up, a good signal-quality state, stable/confident output, and a 4–45 breaths/minute range check. Known SDK positioning and lighting hints are translated into neutral, non-medical guidance.
 
-After a successful Stop, the recap displays session elapsed time, the arithmetic mean of valid gated breathing-rate readings, and the valid-reading count. When no valid readings exist, it reports that there was not enough valid signal. Raw physiological measurements are cleared after the approved immutable recap summary is created; only that summary and its accurate source disclosure remain for the recap.
+The current migration baseline still displays session elapsed time, the arithmetic mean of valid gated breathing-rate readings, and the valid-reading count. The target Reset Receipt behavior is defined in `docs/PRODUCT.md`: median of the first three and last three stable gated readings, requiring at least six readings. That receipt calculation and image export are not yet implemented. Raw physiological measurements are cleared after the current approved immutable summary is created.
 
 Retryable errors, including SDK error 14 (sustained low frame rate), show **Reconnecting** while preserving the last safe garden state. Recovery uses at most three attempts with 500 ms, 1 s, and 2 s delays.
 
 ## Privacy and security
 
-- BreatheBreak does not record or persist camera frames.
+- Reset Receipt does not record or persist camera frames.
 - A live camera stream is passed to the SmartSpectra SDK only during an explicitly started session.
 - SDK telemetry is disabled by this app.
 - Camera selection is stored locally. Raw breathing samples are held in memory only for the active session and are cleared on successful Stop, manual clearing, startup/Stop failure, terminal source errors, and teardown. The recap retains only its approved immutable summary.
@@ -59,7 +59,7 @@ Review SmartSpectra's own terms and privacy documentation before distributing a 
 ## Architecture
 
 - `src/main`: Electron window and official `bindSmartSpectraIpc` binding.
-- `src/preload`: BreatheBreak's narrow bridge plus the official SDK preload bridge.
+- `src/preload`: Reset Receipt's narrow bridge plus the official SDK preload bridge.
 - `src/renderer/src/signals`: typed simulation and real SDK adapters, measurement gates, camera cleanup, and reconnection.
 - `src/renderer/src/store`: deterministic session state and recap.
 

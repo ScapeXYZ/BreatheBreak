@@ -1,6 +1,6 @@
 # R1 live-test readiness runbook
 
-R1 must not begin until Claude explicitly authorizes the live session. This runbook prepares a single controlled BreatheBreak real-SDK check; it is not evidence that the Phase 0 three-minute stability gate has passed.
+R1 must not begin until Claude explicitly authorizes the live session. This runbook prepares a single controlled Reset Receipt real-SDK check; it is not evidence that the Phase 0 three-minute stability gate has passed.
 
 ## Before authorization
 
@@ -13,7 +13,7 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 
 ## Authorized run
 
-1. Launch BreatheBreak only after Claude's authorization.
+1. Launch Reset Receipt only after Claude's authorization.
 2. Confirm no camera permission or SDK processing occurs on application launch.
 3. Select **SmartSpectra SDK** and explicitly select Camo by its displayed device entry.
 4. Verify **Start session** remains disabled until camera selection and consent are complete.

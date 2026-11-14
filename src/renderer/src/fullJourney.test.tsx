@@ -66,6 +66,11 @@ async function runJourney(width: number, height: number): Promise<void> {
   await click('Start session')
   expect(useSession.getState().phase).toBe('running')
   await advance(1_000)
+  expect(document.querySelector('.rate-value')?.textContent).toBe('—')
+  expect(document.body.textContent).toContain('Measuring…')
+  expect(document.body.textContent).toContain('Your breathing, live')
+  expect(document.body.textContent).not.toContain('Flower quality')
+  expect(document.querySelector('.signal-list dt')?.textContent).toBe('Signal')
   expect(document.querySelector('canvas[aria-label="Live measured breathing flower"]')).toBeTruthy()
   expectSimulationDisclosure()
 
