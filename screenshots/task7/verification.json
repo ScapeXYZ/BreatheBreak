@@ -1,0 +1,30 @@
+{
+  "measuredAt": "2026-11-14T11:45:09.921Z",
+  "methodology": "Offline DEV SIMULATION screenshot harness; cap-complete store transition forced after Start; SDK and camera excluded by safe-bundle audit.",
+  "evidence": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "filename": "baseline-cap-1280x800.png",
+      "simulation": true,
+      "promptVisible": true,
+      "buttonVisible": true,
+      "panelWithinViewport": true,
+      "cue": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "filename": "baseline-cap-1440x900.png",
+      "simulation": true,
+      "promptVisible": true,
+      "buttonVisible": true,
+      "panelWithinViewport": true,
+      "cue": true
+    }
+  ]
+}
