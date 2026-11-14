@@ -147,7 +147,7 @@ beforeEach(() => {
   const values = new Map<string, string>()
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value), removeItem: (key: string) => values.delete(key), clear: () => values.clear() } })
   Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => null })
-  Object.defineProperty(window, 'breathebreak', { configurable: true, value: { getRuntimeInfo: vi.fn(), getLiveTestConfig: vi.fn(), updateLiveTestCounters: vi.fn(), recordLiveTestEvent: vi.fn() } })
+  Object.defineProperty(window, 'breathebreak', { configurable: true, value: { getRuntimeInfo: vi.fn(), getLiveTestConfig: vi.fn().mockResolvedValue({enabled:false,writing:false,runId:''}), beginLiveTestSession:vi.fn(),endLiveTestSession:vi.fn(),copyLiveTestRunReport:vi.fn(),updateLiveTestCounters: vi.fn(), recordLiveTestEvent: vi.fn() } })
   sessionRecorder.clear()
   useSession.setState({ phase: 'welcome', receiptPhase: 'idle', baselineReady: false, consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
 })

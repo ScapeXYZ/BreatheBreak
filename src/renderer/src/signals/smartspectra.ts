@@ -52,7 +52,6 @@ export class SmartSpectraSignalSource implements SignalSource {
   private goodSignalSamples = 0
   private signalSamples = 0
   private rateGateCounter = new UniqueRateGateCounter()
-  private sessionEventRecorded = false
   private counterTimer?: ReturnType<typeof setInterval>
 
   async listCameras(): Promise<CameraDevice[]> {
@@ -74,7 +73,6 @@ export class SmartSpectraSignalSource implements SignalSource {
     this.goodSignalSamples = 0
     this.signalSamples = 0
     this.rateGateCounter.reset()
-    this.sessionEventRecorded = false
     if (liveTest.enabled) this.counterTimer = setInterval(() => this.reportLiveTestCounters(), 1_000)
     this.listener = listener
     this.options = options
@@ -88,10 +86,6 @@ export class SmartSpectraSignalSource implements SignalSource {
     const cameras = await this.listCameras()
     const camera = cameras.find((candidate) => candidate.id === cameraId)
     if (!camera) throw new Error('The selected camera is no longer available. Choose another camera.')
-    if (this.liveTestEnabled && !this.sessionEventRecorded) {
-      window.breathebreak.recordLiveTestEvent({ event: 'session-start', cameraLabel: camera.label || 'Unlabeled camera' })
-      this.sessionEventRecorded = true
-    }
     this.warmup = new WarmupGate()
     this.quality = { kind: 'warming', message: 'Preparing the signal' }
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { deviceId: { exact: cameraId }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } })

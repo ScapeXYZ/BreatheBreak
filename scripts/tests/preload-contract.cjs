@@ -9,7 +9,7 @@ const PRELOAD = path.join(ROOT, 'out/preload/index.cjs')
 async function verifyProductionPreloadContract() {
   if (!existsSync(PRELOAD)) throw new Error('Production preload artifact missing: run npm run build first.')
   ipcMain.handle('app:get-runtime-info', () => ({ platform: process.platform, version: app.getVersion() }))
-  ipcMain.handle('app:get-live-test-config', () => ({ enabled: true }))
+  ipcMain.handle('app:get-live-test-config', () => ({ enabled: true, writing: true, runId: 'contract-run' }))
   const window = new BrowserWindow({
     show: false,
     webPreferences: {
@@ -26,6 +26,9 @@ async function verifyProductionPreloadContract() {
       breathebreak: {
         runtime: typeof window.breathebreak?.getRuntimeInfo,
         liveTest: typeof window.breathebreak?.getLiveTestConfig,
+        beginSession: typeof window.breathebreak?.beginLiveTestSession,
+        endSession: typeof window.breathebreak?.endLiveTestSession,
+        copyReport: typeof window.breathebreak?.copyLiveTestRunReport,
         counters: typeof window.breathebreak?.updateLiveTestCounters,
         releaseEvent: typeof window.breathebreak?.recordLiveTestEvent
       },
@@ -40,7 +43,7 @@ async function verifyProductionPreloadContract() {
       liveTestEnabled: null
     })`, true)
     contract.liveTestEnabled = (await window.webContents.executeJavaScript('window.breathebreak.getLiveTestConfig()', true)).enabled
-    const expectedFunctions = ['runtime', 'liveTest', 'counters', 'releaseEvent']
+    const expectedFunctions = ['runtime', 'liveTest', 'beginSession', 'endSession', 'copyReport', 'counters', 'releaseEvent']
     for (const key of expectedFunctions) if (contract.breathebreak[key] !== 'function') throw new Error(`Missing breathebreak.${key} bridge function`)
     for (const [key, value] of Object.entries(contract.sdk)) if (value !== 'function') throw new Error(`Missing SDK preload ${key} bridge function`)
     if (contract.rendererRequire !== 'undefined' || contract.rendererProcess !== 'undefined') throw new Error('Renderer unexpectedly has Node globals')

@@ -12,7 +12,7 @@ let host:HTMLDivElement|undefined
 
 async function renderRecap(recap:Recap):Promise<void>{act(()=>{useSession.setState({phase:'recap',source:recap.source,recap,gatedRates:[],sample:undefined,startedAt:undefined})});host=document.createElement('div');document.body.append(host);root=createRoot(host);await act(async()=>{root!.render(<App/>);await new Promise(resolve=>setTimeout(resolve,250))})}
 
-beforeEach(()=>{const values=new Map<string,string>();Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:(key:string)=>values.get(key)??null,setItem:(key:string,value:string)=>values.set(key,value),removeItem:(key:string)=>values.delete(key),clear:()=>values.clear()}});Object.defineProperty(HTMLCanvasElement.prototype,'getContext',{configurable:true,value:()=>null})})
+beforeEach(()=>{Object.defineProperty(window,'breathebreak',{configurable:true,value:{getRuntimeInfo:vi.fn(),getLiveTestConfig:vi.fn().mockResolvedValue({enabled:false,writing:false,runId:''}),beginLiveTestSession:vi.fn(),endLiveTestSession:vi.fn(),copyLiveTestRunReport:vi.fn(),updateLiveTestCounters:vi.fn(),recordLiveTestEvent:vi.fn()}});const values=new Map<string,string>();Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:(key:string)=>values.get(key)??null,setItem:(key:string,value:string)=>values.set(key,value),removeItem:(key:string)=>values.delete(key),clear:()=>values.clear()}});Object.defineProperty(HTMLCanvasElement.prototype,'getContext',{configurable:true,value:()=>null})})
 afterEach(()=>{if(root)act(()=>root!.unmount());host?.remove();root=undefined;host=undefined})
 
 describe('session recap UI',()=>{
