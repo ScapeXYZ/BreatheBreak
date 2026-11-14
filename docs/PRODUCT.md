@@ -10,14 +10,18 @@ Reset Receipt is a consent-first, non-medical breathing experience with an adapt
 
 ## Receipt definition
 
-- **Before:** median of all stable, gated breathing-rate readings collected during the adaptive baseline phase; at least three baseline readings are required.
-- **After:** median of the last three stable, gated breathing-rate readings collected during the guided phase; at least three guided-phase readings are required.
+- **Before:** median of all stable, gated breathing-rate readings collected during the adaptive baseline phase; at least two baseline readings are required.
+- **After:** median of up to the last three stable, gated breathing-rate readings collected during the guided phase; at least two guided-phase readings are required.
+- Show the actual accepted count for each phase as **Before n=** and **After n=**.
+- Show accepted SDK-threshold readings as a count of all unique SDK-timestamped rate samples on both the live HUD and receipt.
+- After 20 seconds with at least one rate sample and an acceptance share below 50%, show the positioning cue: **“Hold still, keep your chest in view, add light”**.
 - Show the guide pace next to the measured rate so the instruction and observation remain distinct.
-- With fewer than six readings, show exactly: **“Not enough stable readings for a receipt”**.
+- If either phase has fewer than two accepted readings, show exactly: **“Not enough stable readings for a receipt”**.
 - If either Before or After is missing, do not show a change value.
 - Label a valid receipt exactly: **“Measured by SmartSpectra. Not a score. Not medical.”**
 - Start and end values are observations, not proof of improvement or any medical, stress, recovery, or relaxation outcome.
 - Raw physiological measurements remain in memory only for the active session and are cleared after the immutable receipt summary is created.
+- Authorized live-test diagnostics retain only identity, counts, event timestamps, accepted-reading elapsed times, and confidence-bin totals; they never retain physiological values or raw confidence values.
 
 ## Deferred
 

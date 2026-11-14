@@ -8,8 +8,9 @@ Status is evidence-based as of November 14, 2026. `NOT VERIFIED` means the requi
 | --- | --- | --- |
 | Reset Receipt product definition | VERIFIED — documentation | `docs/PRODUCT.md` defines the bounded product, receipt calculation, fallback copy, and deferred scope. |
 | Adaptive reset timeline | VERIFIED — simulation/code | Baseline unlocks after three SDK-confidence/stability accepted readings or at a 45-second cap. The pacer remains user-started and preserves the tested 45-second guided phase. Real-device timing remains unverified. |
-| Before-vs-After receipt calculation | VERIFIED — pure function/test only | `features/receipt/receipt.ts` calculates Before from stable gated baseline readings (minimum three), After from the final three stable gated guided-phase readings, rejects values outside 4–45, and omits change when either side is missing. The receipt UI is intentionally not implemented yet. |
-| Receipt copy and source label | VERIFIED — constants/tests only | Exact insufficient-data and “Measured by SmartSpectra. Not a score. Not medical.” copy are defined and tested; presentation remains NOT VERIFIED because receipt UI is out of scope. |
+| Before-vs-After receipt calculation | VERIFIED — code/test | `features/receipt/receipt.ts` requires at least two accepted readings in both baseline and guided phases, rejects values outside 4–45, exposes actual phase counts, and omits change when either side is missing. |
+| Receipt reliability evidence | VERIFIED — code/test | The live HUD and receipt show accepted SDK-threshold readings out of unique SDK-timestamped samples. The receipt shows `Before n=` and `After n=`; a below-50% acceptance share after 20 seconds displays the approved positioning cue. Real-device presentation remains unverified. |
+| Receipt copy and source label | VERIFIED — code/test | Exact insufficient-data and “Measured by SmartSpectra. Not a score. Not medical.” copy are defined and tested. |
 | Receipt image export | NOT VERIFIED | No export behavior or evidence exists. |
 | Three-step first-run guide | NOT VERIFIED | No three-step onboarding flow or evidence exists. |
 | Reset Receipt product strings | VERIFIED — code | Window title, primary UI brand, README, and package display name use “Reset Receipt”; internal identifiers remain unchanged. |
@@ -21,6 +22,7 @@ Status is evidence-based as of November 14, 2026. `NOT VERIFIED` means the requi
 | Privacy header copy | VERIFIED — code | Header copy is exactly “This app does not save video.” |
 | Raw-session cleanup | VERIFIED — tests | Successful Stop creates the approved immutable current recap before clearing raw stores; fatal-error and manual-clear regression tests also pass. The new receipt summary remains future work. |
 | Track-release diagnostic event | VERIFIED — code/test | Authorized live-test diagnostics allowlist a timestamped `media-tracks-stopped` event when an acquired stream is released. No real retry has verified the event. |
+| Sanitized reliability diagnostics | VERIFIED — code/test | Five-second records include unique SDK-confidence-bin counts; session summaries and copied Run Reports include bin totals and accepted-reading elapsed seconds. Exact schemas reject extra fields and retain no physiological values or raw confidence values. |
 | Real SDK Reset Receipt verification | NOT VERIFIED | No SDK session is authorized by this migration. Phase 0 stability and the new product flow remain unverified on real hardware. |
 
 ## DEFER
