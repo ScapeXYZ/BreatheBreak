@@ -7,7 +7,7 @@ Status is evidence-based as of November 14, 2026. `NOT VERIFIED` means the requi
 | Item | Status | Evidence |
 | --- | --- | --- |
 | Reset Receipt product definition | VERIFIED — documentation | `docs/PRODUCT.md` defines the bounded product, receipt calculation, fallback copy, and deferred scope. |
-| About-75-second reset timeline | VERIFIED — simulation/code | Session state and a cancellable timer enforce approximately 25 seconds of baseline before the pacer opener enables, followed by the tested 45-second guided phase. Real-device timing remains unverified. |
+| Adaptive reset timeline | VERIFIED — simulation/code | Baseline unlocks after three SDK-confidence/stability accepted readings or at a 45-second cap. The pacer remains user-started and preserves the tested 45-second guided phase. Real-device timing remains unverified. |
 | Before-vs-After receipt calculation | VERIFIED — pure function/test only | `features/receipt/receipt.ts` calculates Before from stable gated baseline readings (minimum three), After from the final three stable gated guided-phase readings, rejects values outside 4–45, and omits change when either side is missing. The receipt UI is intentionally not implemented yet. |
 | Receipt copy and source label | VERIFIED — constants/tests only | Exact insufficient-data and “Measured by SmartSpectra. Not a score. Not medical.” copy are defined and tested; presentation remains NOT VERIFIED because receipt UI is out of scope. |
 | Receipt image export | NOT VERIFIED | No export behavior or evidence exists. |
@@ -15,7 +15,7 @@ Status is evidence-based as of November 14, 2026. `NOT VERIFIED` means the requi
 | Reset Receipt product strings | VERIFIED — code | Window title, primary UI brand, README, and package display name use “Reset Receipt”; internal identifiers remain unchanged. |
 | Auto-only flower control | VERIFIED — code/test | The live flower is fixed to Auto and no user-facing quality selector is rendered. Existing bounded Auto adaptation tests remain in place. |
 | Stop button always visible | VERIFIED — simulation browser test | `npm run test:layout` asserts the sticky Stop button is inside the viewport and operable at 1280×720, 1280×800, 1440×900, and 1920×1080. Real-device presentation is not claimed. |
-| Rate placeholder | VERIFIED — simulation/code | The live rate shows an em dash and “Measuring…” until a valid gated rate exists. |
+| Rate placeholder and baseline progress | VERIFIED — simulation/code | The live rate shows an em dash and “Measuring…” until a valid gated rate exists; baseline progress shows accepted readings out of three and explicit completion copy. |
 | Camera status line | VERIFIED — code/simulation | Exact states are `Camera: off`, `Camera: on`, and `Camera: off, simulation`; real-device presentation remains unverified. |
 | Signal-quality indicator | VERIFIED — code/simulation | The live Signal row renders the current gated quality kind or neutral guidance. |
 | Privacy header copy | VERIFIED — code | Header copy is exactly “This app does not save video.” |

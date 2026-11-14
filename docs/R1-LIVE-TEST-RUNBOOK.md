@@ -4,7 +4,7 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 
 ## Before authorization
 
-1. Stay on `design-redesign` with a clean, checkpointed working tree.
+1. Stay on `reset-receipt` with a clean, checkpointed working tree.
 2. Confirm the API key exists only in the ignored local `.env`; never print or record it.
 3. Confirm Camo USB is available and no other application is using it.
 4. Check and privately record Presage portal usage before the run.
@@ -21,12 +21,14 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 6. Only after those four checks, select consent and press **Start session** once.
 7. Confirm no camera permission or SDK processing occurred before Start, and confirm **Start session** was disabled until camera selection and consent were complete.
 8. Confirm the camera-status line says **Camera: on**, the LIVE indicator is visible, and the signal-quality row progresses without invented values.
-9. Observe the rate placeholder during warm-up and record whether the required “Measuring…” copy is present.
-10. Run only for the duration authorized by Claude. Do not record sample values.
-11. Keep **Stop session** visible and operable throughout. Press it once at the authorized endpoint.
-12. Confirm the camera indicator clears, camera hardware is released, raw session buffers are cleared, and the recap contains only the approved summary and **Source: SmartSpectra**.
-13. Click **Copy run report**. Paste the application's Run Report verbatim into the authorized evidence record; do not reconstruct or edit it.
-14. Press **Done** and confirm the app returns to Welcome/Consent without stale readings or guided metadata.
+9. Observe the rate placeholder before an accepted reading and confirm **Natural breathing: n of 3 readings** advances only on accepted readings.
+10. Confirm the baseline completes by `count` after three accepted readings, or by `cap` at 45 seconds. Confirm the UI says **Baseline done. Start your guided minute.**
+11. Confirm the pacer does not start automatically. Start it explicitly, then preserve the 45-second guided phase.
+12. Run only for the duration authorized by Claude. Do not record sample values.
+13. Keep **Stop session** visible and operable throughout. Press it once at the authorized endpoint.
+14. Confirm the camera indicator clears, camera hardware is released, raw session buffers are cleared, and the recap contains only the approved summary and **Source: SmartSpectra**.
+15. Click **Copy run report**. Confirm it includes baseline completion reason, time to baseline completion, and accepted counts before and after pacer start. Paste the Run Report verbatim; do not reconstruct or edit it.
+16. Press **Done** and confirm the app returns to Welcome/Consent without stale readings or guided metadata.
 
 ## After the run
 
