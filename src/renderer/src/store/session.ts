@@ -7,7 +7,7 @@ export type Recap = Readonly<{ durationSeconds: number; averageBreathingRate?: n
 type FinishOptions = { guidedPaceCompleted?: boolean }
 type SessionState = {
   phase: SessionPhase; receiptPhase: ReceiptTimelinePhase; baselineReady: boolean; consented: boolean; source: SourceKind; cameraId?: string; sample?: SignalSample; error?: string; startedAt?: number; gatedRates: number[]; recap?: Recap
-  setConsent(value: boolean): void; setSource(source: SourceKind): void; setCamera(cameraId?: string): void; begin(): void; running(): void; reconnecting(): void; markBaselineReady(): void; startGuided(): void; endGuided(): void; receive(sample: SignalSample, gatedRate?: number): void; clearMeasurements(): void; stopping(): void; finish(options?: FinishOptions): void; fail(message: string): void; reset(): void
+  setConsent(value: boolean): void; setSource(source: SourceKind): void; setCamera(cameraId?: string): void; begin(): void; running(): void; reconnecting(): void; markBaselineReady(): void; startGuided(): void; endGuided(): void; receiveSample(sample: SignalSample): void; receiveRate(gatedRate: number): void; clearMeasurements(): void; stopping(): void; finish(options?: FinishOptions): void; fail(message: string): void; reset(): void
 }
 
 const rememberedCamera = (): string | undefined => typeof localStorage === 'undefined' ? undefined : localStorage.getItem('breathebreak.cameraId') ?? undefined
@@ -23,7 +23,8 @@ export const useSession = create<SessionState>((set) => ({
   markBaselineReady: () => set((state) => state.receiptPhase === 'baseline' ? { baselineReady: true } : state),
   startGuided: () => set((state) => state.baselineReady ? { receiptPhase: advanceReceiptTimeline(state.receiptPhase, 'pacer-start') } : state),
   endGuided: () => set((state) => ({ receiptPhase: advanceReceiptTimeline(state.receiptPhase, 'pacer-end') })),
-  receive: (sample, rate) => set((state) => ({ sample, gatedRates: rate === undefined ? state.gatedRates : [...state.gatedRates, rate] })),
+  receiveSample: (sample) => set({ sample }),
+  receiveRate: (rate) => set((state) => ({ gatedRates: [...state.gatedRates, rate] })),
   clearMeasurements: () => set({ sample: undefined, gatedRates: [], recap: undefined }),
   stopping: () => set({ phase: 'stopping' }),
   finish: (options = {}) => set((state) => {

@@ -40,9 +40,17 @@ describe('session state', () => {
     useSession.getState().finish(); expect(useSession.getState().receiptPhase).toBe('idle')
   })
 
+  it('makes the real-source pacer ready after baseline without requiring a valid rate', () => {
+    useSession.setState({ source: 'smartspectra', receiptPhase: 'baseline', baselineReady: false, gatedRates: [], sample: undefined })
+    useSession.getState().markBaselineReady()
+    expect(useSession.getState()).toMatchObject({ source: 'smartspectra', receiptPhase: 'baseline', baselineReady: true, gatedRates: [] })
+    useSession.getState().startGuided()
+    expect(useSession.getState().receiptPhase).toBe('guided')
+  })
+
   it('retains the last sample while reconnecting', () => {
     const sample = { timestampMs: 1, quality: { kind: 'ok' as const }, chestTrace: 0.4 }
-    useSession.getState().receive(sample, 12)
+    useSession.getState().receiveSample(sample); useSession.getState().receiveRate(12)
     useSession.getState().reconnecting()
     expect(useSession.getState().sample).toEqual(sample)
     expect(useSession.getState().gatedRates).toEqual([12])
