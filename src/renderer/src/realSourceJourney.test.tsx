@@ -100,6 +100,8 @@ describe('R3-shaped real-source journey', () => {
 
     await advance(44_000)
     expect(useSession.getState()).toMatchObject({ baselineAcceptedCount: 1, baselineReady: false })
+    expect(document.body.textContent).toContain('Readings that met the SDK threshold: 1 of 5')
+    expect(document.body.textContent).toContain('Hold still, keep your chest in view, add light')
     await advance(1_000)
     expect(useSession.getState()).toMatchObject({ baselineAcceptedCount: 1, baselineReady: true, baselineCompletionReason: 'cap', receiptPhase: 'baseline' })
     expect(document.body.textContent).toContain('Baseline done. Start your guided minute.')
@@ -123,6 +125,9 @@ describe('R3-shaped real-source journey', () => {
     await click('Stop session')
     expect(useSession.getState().recap).toMatchObject({ source: 'smartspectra', sampleCount: 1, guidedPaceCompleted: true, receiptSufficient: false })
     await advance(300)
+    expect(document.body.textContent).toContain('Readings that met the SDK threshold: 1 of 11')
+    expect(document.body.textContent).toContain('Before n=1')
+    expect(document.body.textContent).toContain('After n=0')
     expect(document.querySelector('.recap-signal-note')?.textContent).toBe(RECEIPT_INSUFFICIENT_COPY)
   })
 })

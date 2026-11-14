@@ -4,6 +4,7 @@ export const RECEIPT_GUIDED_SECONDS = 45
 export const RECEIPT_TOTAL_SECONDS_APPROXIMATE = 90
 export const RECEIPT_INSUFFICIENT_COPY = 'Not enough stable readings for a receipt'
 export const RECEIPT_DISCLOSURE = 'Measured by SmartSpectra. Not a score. Not medical.'
+export const RECEIPT_MIN_READINGS_PER_PHASE = 2
 export function baselineCompletionReason(acceptedReadings: number, elapsedSeconds: number): 'count' | 'cap' | undefined {
   if (acceptedReadings >= RECEIPT_BASELINE_TARGET_READINGS) return 'count'
   if (elapsedSeconds >= RECEIPT_BASELINE_MAX_SECONDS) return 'cap'
@@ -12,7 +13,7 @@ export function baselineCompletionReason(acceptedReadings: number, elapsedSecond
 
 export type ReceiptMeasurementPhase = 'baseline' | 'guided'
 export type ReceiptReading = Readonly<{ value: number; phase: ReceiptMeasurementPhase; stable: boolean; gated: boolean }>
-export type ReceiptCalculation = Readonly<{ before?: number; after?: number; change?: number; sufficient: boolean }>
+export type ReceiptCalculation = Readonly<{ before?: number; after?: number; change?: number; beforeCount: number; afterCount: number; sufficient: boolean }>
 export type ReceiptTimelinePhase = 'idle' | 'baseline' | 'guided' | 'complete'
 export type ReceiptTimelineEvent = 'session-start' | 'pacer-start' | 'pacer-end' | 'session-end'
 
@@ -26,10 +27,10 @@ export function calculateReceipt(readings: readonly ReceiptReading[]): ReceiptCa
   const valid = readings.filter((reading) => reading.gated && reading.stable && Number.isFinite(reading.value) && reading.value >= 4 && reading.value <= 45)
   const baseline = valid.filter((reading) => reading.phase === 'baseline').map((reading) => reading.value)
   const guided = valid.filter((reading) => reading.phase === 'guided').map((reading) => reading.value)
-  const before = baseline.length >= 3 ? median(baseline) : undefined
-  const after = guided.length >= 3 ? median(guided.slice(-3)) : undefined
-  if (before === undefined || after === undefined) return Object.freeze({ before, after, sufficient: false })
-  return Object.freeze({ before, after, change: after - before, sufficient: true })
+  const before = baseline.length >= RECEIPT_MIN_READINGS_PER_PHASE ? median(baseline) : undefined
+  const after = guided.length >= RECEIPT_MIN_READINGS_PER_PHASE ? median(guided.slice(-3)) : undefined
+  if (before === undefined || after === undefined) return Object.freeze({ before, after, beforeCount: baseline.length, afterCount: guided.length, sufficient: false })
+  return Object.freeze({ before, after, change: after - before, beforeCount: baseline.length, afterCount: guided.length, sufficient: true })
 }
 
 export function advanceReceiptTimeline(phase: ReceiptTimelinePhase, event: ReceiptTimelineEvent): ReceiptTimelinePhase {

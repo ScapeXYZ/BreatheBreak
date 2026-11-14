@@ -5,16 +5,16 @@ const reading = (value: number, phase: 'baseline' | 'guided', stable = true, gat
 
 describe('Reset Receipt calculation (simulation-only fixtures)', () => {
   it('uses the baseline median and the median of the final three guided readings', () => {
-    expect(calculateReceipt([reading(10, 'baseline'), reading(30, 'baseline'), reading(20, 'baseline'), reading(11, 'guided'), reading(12, 'guided'), reading(13, 'guided'), reading(14, 'guided')])).toEqual({ before: 20, after: 13, change: -7, sufficient: true })
+    expect(calculateReceipt([reading(10, 'baseline'), reading(30, 'baseline'), reading(20, 'baseline'), reading(11, 'guided'), reading(12, 'guided'), reading(13, 'guided'), reading(14, 'guided')])).toEqual({ before: 20, after: 13, change: -7, beforeCount: 3, afterCount: 4, sufficient: true })
   })
 
   it('handles ties and even baseline counts deterministically', () => {
-    expect(calculateReceipt([reading(8, 'baseline'), reading(10, 'baseline'), reading(10, 'baseline'), reading(12, 'baseline'), reading(9, 'guided'), reading(9, 'guided'), reading(11, 'guided')])).toEqual({ before: 10, after: 9, change: -1, sufficient: true })
+    expect(calculateReceipt([reading(8, 'baseline'), reading(10, 'baseline'), reading(10, 'baseline'), reading(12, 'baseline'), reading(9, 'guided'), reading(9, 'guided'), reading(11, 'guided')])).toEqual({ before: 10, after: 9, change: -1, beforeCount: 4, afterCount: 3, sufficient: true })
   })
 
   it('excludes unstable, ungated, non-finite, and out-of-range values', () => {
     const result = calculateReceipt([reading(3, 'baseline'), reading(46, 'baseline'), reading(Number.NaN, 'baseline'), reading(8, 'baseline', false), reading(9, 'baseline', true, false), reading(10, 'baseline'), reading(11, 'baseline'), reading(12, 'baseline'), reading(13, 'guided'), reading(14, 'guided'), reading(15, 'guided')])
-    expect(result).toEqual({ before: 11, after: 14, change: 3, sufficient: true })
+    expect(result).toEqual({ before: 11, after: 14, change: 3, beforeCount: 3, afterCount: 3, sufficient: true })
   })
 
   it.each([
@@ -25,6 +25,11 @@ describe('Reset Receipt calculation (simulation-only fixtures)', () => {
     const result = calculateReceipt(readings)
     expect(result.sufficient).toBe(false)
     expect(result).not.toHaveProperty('change')
+  })
+
+  it('is eligible with two actual accepted readings in each phase',()=>{
+    expect(calculateReceipt([reading(10,'baseline'),reading(12,'baseline'),reading(8,'guided'),reading(10,'guided')])).toEqual({before:11,after:9,change:-2,beforeCount:2,afterCount:2,sufficient:true})
+    expect(calculateReceipt([reading(10,'baseline'),reading(8,'guided'),reading(10,'guided')])).toEqual({before:undefined,after:9,beforeCount:1,afterCount:2,sufficient:false})
   })
 
   it('keeps the required copy and 45-second guide duration exact', () => {
