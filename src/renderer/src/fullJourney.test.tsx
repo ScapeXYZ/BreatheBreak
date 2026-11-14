@@ -83,6 +83,8 @@ async function runJourney(width: number, height: number): Promise<void> {
   expect(useSession.getState().sample?.quality.kind).toBe('ok')
   expect(sessionRecorder.latestChest()).toBeTypeOf('number')
 
+  expect(button('Measuring baseline…').disabled).toBe(true)
+  await advance(16_100)
   const opener = button('Open guided pacer')
   opener.focus()
   await click('Open guided pacer')
@@ -147,7 +149,7 @@ beforeEach(() => {
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value), removeItem: (key: string) => values.delete(key), clear: () => values.clear() } })
   Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => null })
   sessionRecorder.clear()
-  useSession.setState({ phase: 'welcome', receiptPhase: 'idle', consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
+  useSession.setState({ phase: 'welcome', receiptPhase: 'idle', baselineReady: false, consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
 })
 
 afterEach(() => {

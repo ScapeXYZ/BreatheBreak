@@ -11,7 +11,7 @@ describe('session state', () => {
       removeItem: (key: string) => values.delete(key)
     })
     localStorage.clear()
-    useSession.setState({ phase: 'welcome', receiptPhase: 'idle', consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
+    useSession.setState({ phase: 'welcome', receiptPhase: 'idle', baselineReady: false, consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
   })
 
   it('requires consent before entering starting', () => {
@@ -33,6 +33,8 @@ describe('session state', () => {
   it('places baseline before the guided phase and ends the timeline on Stop', () => {
     useSession.getState().setConsent(true); useSession.getState().begin()
     expect(useSession.getState().receiptPhase).toBe('baseline')
+    useSession.getState().startGuided(); expect(useSession.getState().receiptPhase).toBe('baseline')
+    useSession.getState().markBaselineReady()
     useSession.getState().startGuided(); expect(useSession.getState().receiptPhase).toBe('guided')
     useSession.getState().endGuided(); expect(useSession.getState().receiptPhase).toBe('complete')
     useSession.getState().finish(); expect(useSession.getState().receiptPhase).toBe('idle')
