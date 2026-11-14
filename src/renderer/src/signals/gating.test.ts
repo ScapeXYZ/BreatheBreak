@@ -39,6 +39,16 @@ describe('documented breathing-rate gate', () => {
     expect(counter.uniqueSamples).toBe(2)
     expect(counter.counts).toEqual({ warmup: 0, unstable: 0, lowConfidence: 1, outOfRange: 0, badTimestamp: 1, accepted: 1 })
   })
+
+  it('counts every confidence-bin boundary once and excludes duplicate SDK timestamps', () => {
+    const counter = new UniqueRateGateCounter()
+    const confidences = [0, 19.999, 20, 44.999, 45, 69.999, 70, 100]
+    confidences.forEach((confidence, index) => counter.observe(sample({ timestampMs: 1_700_000_000_000 + index, confidence, stable: confidence >= 45 })))
+    counter.observe(sample({ timestampMs: 1_700_000_000_000, confidence: 100 }))
+    expect(counter.uniqueSamples).toBe(8)
+    expect(counter.confidenceBins).toEqual({ confidence0To19: 2, confidence20To44: 2, confidence45To69: 2, confidence70To100: 2 })
+    expect(Object.values(counter.confidenceBins).reduce((sum, count) => sum + count, 0)).toBe(8)
+  })
 })
 
 describe('baseline statistics', () => {

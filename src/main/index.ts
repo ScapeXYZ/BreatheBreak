@@ -3,7 +3,7 @@ import { appendFileSync, mkdirSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { dirname, join, resolve } from 'node:path'
 import { bindSmartSpectraIpc } from '@smartspectra/node-sdk/main'
-import { EMPTY_LIVE_TEST_COUNTERS, formatLiveTestRunReport, isGoodSignalWindow, isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH, liveTestDiagnosticRecord, liveTestEventRecord, liveTestLaunchRecord, LiveTestSessionEvidence, type LiveTestCounters, type LiveTestSessionSummary, validBeginLiveTestSessionRequest, validEndLiveTestSessionRequest, validLiveTestCounters, validLiveTestEvent } from '../shared/liveTest'
+import { EMPTY_LIVE_TEST_COUNTERS, formatLiveTestRunReport, isGoodSignalWindow, isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH, liveTestAcceptedReadingRecord, liveTestDiagnosticRecord, liveTestEventRecord, liveTestLaunchRecord, LiveTestSessionEvidence, type LiveTestCounters, type LiveTestSessionSummary, validBeginLiveTestSessionRequest, validEndLiveTestSessionRequest, validLiveTestCounters, validLiveTestEvent } from '../shared/liveTest'
 
 const liveTestEnabled = isLiveTestEnabled(process.env.BREATHEBREAK_LIVE_TEST)
 const diagnosticPath = resolve(process.cwd(), LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH)
@@ -88,7 +88,7 @@ app.whenReady().then(() => {
   ipcMain.on('app:record-live-test-event', (_event, event: unknown) => {
     if (liveTestEnabled && activeEvidence && validLiveTestEvent(event) && event.event !== 'session-start') {
       const now = new Date(); activeEvidence.observeEvent(now, event)
-      appendDiagnostic(liveTestEventRecord(now, activeEvidence.identity, event))
+      appendDiagnostic(event.event==='accepted-reading'?liveTestAcceptedReadingRecord(now,activeEvidence.identity,activeEvidence.startTimestamp):liveTestEventRecord(now, activeEvidence.identity, event))
     }
   })
   startLiveTestDiagnostics()

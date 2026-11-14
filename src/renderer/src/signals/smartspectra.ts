@@ -175,7 +175,7 @@ export class SmartSpectraSignalSource implements SignalSource {
   }
 
   private reportLiveTestCounters(): void {
-    if (this.liveTestEnabled) window.breathebreak.updateLiveTestCounters({ deliveredFrames: this.deliveredFrames, sentFrames: this.sentFrames, rateSamples: this.rateSamples, uniqueRateSamples: this.rateGateCounter.uniqueSamples, chestSamples: this.chestSamples, goodSignalSamples: this.goodSignalSamples, signalSamples: this.signalSamples, ...this.rateGateCounter.counts })
+    if (this.liveTestEnabled) window.breathebreak.updateLiveTestCounters({ deliveredFrames: this.deliveredFrames, sentFrames: this.sentFrames, rateSamples: this.rateSamples, uniqueRateSamples: this.rateGateCounter.uniqueSamples, chestSamples: this.chestSamples, goodSignalSamples: this.goodSignalSamples, signalSamples: this.signalSamples, ...this.rateGateCounter.counts, ...this.rateGateCounter.confidenceBins })
   }
 
   private release(): void {
