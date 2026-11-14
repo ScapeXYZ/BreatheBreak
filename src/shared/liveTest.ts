@@ -2,13 +2,13 @@ export const LIVE_TEST_SENTINEL = 'R1_AUTHORIZED'
 export const LIVE_TEST_DIAGNOSTIC_INTERVAL_MS = 5_000
 export const LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH = '.diagnostics/r1-live-test.ndjson'
 
-export type LiveTestCounters = Readonly<{ deliveredFrames: number; sentFrames: number; rateSamples: number; chestSamples: number; goodSignalSamples: number; signalSamples: number }>
-export type LiveTestDiagnosticRecord = Readonly<{ timestamp: string; deliveredFrames: number; sentFrames: number; rateSamples: number; chestSamples: number; cpuPercent: number; goodSignalWindowShare: number }>
+export type LiveTestCounters = Readonly<{ deliveredFrames: number; sentFrames: number; rateSamples: number; uniqueRateSamples: number; chestSamples: number; goodSignalSamples: number; signalSamples: number; warmup: number; unstable: number; lowConfidence: number; outOfRange: number; badTimestamp: number; accepted: number }>
+export type LiveTestDiagnosticRecord = Readonly<{ timestamp: string; deliveredFrames: number; sentFrames: number; rateSamples: number; uniqueRateSamples: number; chestSamples: number; warmup: number; unstable: number; lowConfidence: number; outOfRange: number; badTimestamp: number; accepted: number; cpuPercent: number; goodSignalWindowShare: number }>
 export const LIVE_TEST_EVENTS = ['session-start', 'pacer-start', 'pacer-end', 'stop-clicked', 'media-tracks-stopped', 'sdk-error'] as const
 export type LiveTestEvent = typeof LIVE_TEST_EVENTS[number]
 export type LiveTestEventPayload = Readonly<{ event: 'session-start'; cameraLabel: string }> | Readonly<{ event: 'sdk-error'; code: number }> | Readonly<{ event: Exclude<LiveTestEvent, 'session-start' | 'sdk-error'> }>
 export type LiveTestEventRecord = Readonly<{ timestamp: string } & LiveTestEventPayload>
-export const EMPTY_LIVE_TEST_COUNTERS: LiveTestCounters = Object.freeze({ deliveredFrames: 0, sentFrames: 0, rateSamples: 0, chestSamples: 0, goodSignalSamples: 0, signalSamples: 0 })
+export const EMPTY_LIVE_TEST_COUNTERS: LiveTestCounters = Object.freeze({ deliveredFrames: 0, sentFrames: 0, rateSamples: 0, uniqueRateSamples: 0, chestSamples: 0, goodSignalSamples: 0, signalSamples: 0, warmup: 0, unstable: 0, lowConfidence: 0, outOfRange: 0, badTimestamp: 0, accepted: 0 })
 
 export function isLiveTestEnabled(value: string | undefined): boolean {
   return value === LIVE_TEST_SENTINEL
@@ -34,7 +34,7 @@ export function isGoodSignalWindow(current: LiveTestCounters, previous: LiveTest
 
 export function liveTestDiagnosticRecord(timestamp: Date, current: LiveTestCounters, previous: LiveTestCounters, cpuPercent: number, goodSignalWindowShare: number): LiveTestDiagnosticRecord {
   const delta = (key: keyof LiveTestCounters): number => Math.max(0, current[key] - previous[key])
-  return Object.freeze({ timestamp: timestamp.toISOString(), deliveredFrames: current.deliveredFrames, sentFrames: current.sentFrames, rateSamples: delta('rateSamples'), chestSamples: delta('chestSamples'), cpuPercent, goodSignalWindowShare })
+  return Object.freeze({ timestamp: timestamp.toISOString(), deliveredFrames: current.deliveredFrames, sentFrames: current.sentFrames, rateSamples: delta('rateSamples'), uniqueRateSamples: delta('uniqueRateSamples'), chestSamples: delta('chestSamples'), warmup: delta('warmup'), unstable: delta('unstable'), lowConfidence: delta('lowConfidence'), outOfRange: delta('outOfRange'), badTimestamp: delta('badTimestamp'), accepted: delta('accepted'), cpuPercent, goodSignalWindowShare })
 }
 
 export function liveTestEventRecord(timestamp: Date, payload: LiveTestEventPayload): LiveTestEventRecord {

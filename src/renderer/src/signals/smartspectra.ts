@@ -1,10 +1,11 @@
 import { MetricType, SmartSpectraErrorCode, SmartSpectraSDK, ValidationCode } from '@smartspectra/node-sdk/renderer'
 import { decodeMetrics } from '@smartspectra/node-sdk/messages'
 import { stopMediaStream, videoCameras } from './cameras'
-import { WarmupGate } from './gating'
+import { UniqueRateGateCounter, WarmupGate } from './gating'
 import { ReconnectionPolicy, wait } from './reconnection'
 import type { CameraDevice, SignalListener, SignalQuality, SignalSource, SourceStatus } from './types'
 import { retryAttemptsForLiveTest } from '../../../shared/liveTest'
+import { mapSmartSpectraMetrics } from './smartspectraMapping'
 
 const REQUESTED_METRICS = [MetricType.CHEST_BREATHING, MetricType.BREATHING_RATE, MetricType.ABDOMEN_BREATHING]
 
@@ -50,6 +51,7 @@ export class SmartSpectraSignalSource implements SignalSource {
   private chestSamples = 0
   private goodSignalSamples = 0
   private signalSamples = 0
+  private rateGateCounter = new UniqueRateGateCounter()
   private sessionEventRecorded = false
   private counterTimer?: ReturnType<typeof setInterval>
 
@@ -71,6 +73,7 @@ export class SmartSpectraSignalSource implements SignalSource {
     this.chestSamples = 0
     this.goodSignalSamples = 0
     this.signalSamples = 0
+    this.rateGateCounter.reset()
     this.sessionEventRecorded = false
     if (liveTest.enabled) this.counterTimer = setInterval(() => this.reportLiveTestCounters(), 1_000)
     this.listener = listener
@@ -111,23 +114,21 @@ export class SmartSpectraSignalSource implements SignalSource {
   }
 
   private receiveMetrics(buffer: Uint8Array, timestampUs: number): void {
-    const breathing = decodeMetrics(buffer).breathing
-    if (!breathing) return
-    const rate = breathing.rate.at(-1)
-    const chest = breathing.upperTrace.at(-1)
-    const abdomen = breathing.lowerTrace.at(-1)
+    const decoded = decodeMetrics(buffer)
+    if (!decoded.breathing) return
     const quality = this.warmup.isReady() ? this.quality : { kind: 'warming' as const, message: 'Warming up the breathing signal' }
+    const mapped = mapSmartSpectraMetrics(decoded, timestampUs, quality)
     this.signalSamples += 1
     if (quality.kind === 'ok') this.goodSignalSamples += 1
-    if (rate) this.rateSamples += 1
-    if (chest) this.chestSamples += 1
-    this.listener?.({
-      timestampMs: timestampUs / 1000,
-      breathingRate: rate ? { value: rate.value ?? 0, confidence: rate.confidence ?? 0, stable: rate.stable ?? false } : undefined,
-      chestTrace: chest?.value ?? undefined,
-      abdomenTrace: abdomen?.value ?? undefined,
-      quality
-    })
+    this.rateSamples += mapped.rateSamples.length
+    if (mapped.hasChest) this.chestSamples += 1
+    let emittedRate = false
+    for (const sample of mapped.rateSamples) {
+      if (!this.rateGateCounter.observe(sample)) continue
+      this.listener?.(sample)
+      emittedRate = true
+    }
+    if (!emittedRate) this.listener?.(mapped.traceSample)
   }
 
   private async handleError(code: number, message: string, retryable: boolean): Promise<void> {
@@ -181,7 +182,7 @@ export class SmartSpectraSignalSource implements SignalSource {
   }
 
   private reportLiveTestCounters(): void {
-    if (this.liveTestEnabled) window.breathebreak.updateLiveTestCounters({ deliveredFrames: this.deliveredFrames, sentFrames: this.sentFrames, rateSamples: this.rateSamples, chestSamples: this.chestSamples, goodSignalSamples: this.goodSignalSamples, signalSamples: this.signalSamples })
+    if (this.liveTestEnabled) window.breathebreak.updateLiveTestCounters({ deliveredFrames: this.deliveredFrames, sentFrames: this.sentFrames, rateSamples: this.rateSamples, uniqueRateSamples: this.rateGateCounter.uniqueSamples, chestSamples: this.chestSamples, goodSignalSamples: this.goodSignalSamples, signalSamples: this.signalSamples, ...this.rateGateCounter.counts })
   }
 
   private release(): void {

@@ -11,12 +11,12 @@ describe('R1 live-test safety', () => {
 
   it('records only allowlisted counts, CPU, timestamps, and signal-window share every five seconds', () => {
     expect(LIVE_TEST_DIAGNOSTIC_INTERVAL_MS).toBe(5_000)
-    const current = { deliveredFrames: 20, sentFrames: 18, rateSamples: 7, chestSamples: 6, goodSignalSamples: 3, signalSamples: 4 }
-    const previous = { deliveredFrames: 10, sentFrames: 9, rateSamples: 2, chestSamples: 1, goodSignalSamples: 0, signalSamples: 0 }
+    const current = { ...EMPTY_LIVE_TEST_COUNTERS, deliveredFrames: 20, sentFrames: 18, rateSamples: 7, uniqueRateSamples: 6, chestSamples: 6, goodSignalSamples: 3, signalSamples: 4, warmup: 1, unstable: 1, lowConfidence: 1, outOfRange: 1, badTimestamp: 1, accepted: 1 }
+    const previous = { ...EMPTY_LIVE_TEST_COUNTERS, deliveredFrames: 10, sentFrames: 9, rateSamples: 2, uniqueRateSamples: 2, chestSamples: 1 }
     expect(isGoodSignalWindow(current, previous)).toBe(true)
     const record = liveTestDiagnosticRecord(new Date('2026-11-13T12:00:00Z'), current, previous, 2.5, 0.75)
-    expect(record).toEqual({ timestamp: '2026-11-13T12:00:00.000Z', deliveredFrames: 20, sentFrames: 18, rateSamples: 5, chestSamples: 5, cpuPercent: 2.5, goodSignalWindowShare: 0.75 })
-    expect(Object.keys(record)).toEqual(['timestamp', 'deliveredFrames', 'sentFrames', 'rateSamples', 'chestSamples', 'cpuPercent', 'goodSignalWindowShare'])
+    expect(record).toEqual({ timestamp: '2026-11-13T12:00:00.000Z', deliveredFrames: 20, sentFrames: 18, rateSamples: 5, uniqueRateSamples: 4, chestSamples: 5, warmup: 1, unstable: 1, lowConfidence: 1, outOfRange: 1, badTimestamp: 1, accepted: 1, cpuPercent: 2.5, goodSignalWindowShare: 0.75 })
+    expect(Object.keys(record)).toEqual(['timestamp', 'deliveredFrames', 'sentFrames', 'rateSamples', 'uniqueRateSamples', 'chestSamples', 'warmup', 'unstable', 'lowConfidence', 'outOfRange', 'badTimestamp', 'accepted', 'cpuPercent', 'goodSignalWindowShare'])
     expect(JSON.stringify(record)).not.toMatch(/api|key|frameData|breathingRate|chestTrace|value/i)
   })
 

@@ -4,7 +4,7 @@ export type CameraDevice = { id: string; label: string }
 export type SourceStatus = 'running' | 'reconnecting'
 export type SignalSample = {
   timestampMs: number
-  breathingRate?: { value: number; confidence: number; stable: boolean }
+  breathingRate?: { value: number; confidence: number; stable: boolean; timestampMs: number }
   chestTrace?: number
   abdomenTrace?: number
   quality: SignalQuality
