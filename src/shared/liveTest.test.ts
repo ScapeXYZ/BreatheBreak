@@ -1,32 +1,38 @@
 import { describe, expect, it } from 'vitest'
-import { isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_RELEASE_EVENT, LIVE_TEST_SENTINEL, liveTestDiagnosticRecord, liveTestEventRecord, retryAttemptsForLiveTest, validLiveTestCounters, validLiveTestEvent } from './liveTest'
+import { EMPTY_LIVE_TEST_COUNTERS, isGoodSignalWindow, isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_SENTINEL, liveTestDiagnosticRecord, liveTestEventRecord, retryAttemptsForLiveTest, validLiveTestCounters, validLiveTestEvent } from './liveTest'
 
 describe('R1 live-test safety', () => {
-  it('requires the exact explicit sentinel and rejects accidental values', () => {
+  it('requires the exact explicit sentinel and forces retries to zero', () => {
     expect(isLiveTestEnabled(LIVE_TEST_SENTINEL)).toBe(true)
     expect([undefined, '', '1', 'true', 'r1_authorized', 'R1']).toSatisfy((values: Array<string | undefined>) => values.every((value) => !isLiveTestEnabled(value)))
-  })
-
-  it('forces automatic retries to zero only in live-test mode', () => {
     expect(retryAttemptsForLiveTest(true)).toBe(0)
     expect(retryAttemptsForLiveTest(false)).toBe(3)
   })
 
-  it('defines five-second diagnostics with an allowlisted schema', () => {
+  it('records only allowlisted counts, CPU, timestamps, and signal-window share every five seconds', () => {
     expect(LIVE_TEST_DIAGNOSTIC_INTERVAL_MS).toBe(5_000)
-    const record = liveTestDiagnosticRecord(new Date('2026-11-13T12:00:00Z'), { deliveredFrames: 20, sentFrames: 18 }, 2.5)
-    expect(record).toEqual({ timestamp: '2026-11-13T12:00:00.000Z', deliveredFrames: 20, sentFrames: 18, cpuPercent: 2.5 })
-    expect(Object.keys(record)).toEqual(['timestamp', 'deliveredFrames', 'sentFrames', 'cpuPercent'])
+    const current = { deliveredFrames: 20, sentFrames: 18, rateSamples: 7, chestSamples: 6, goodSignalSamples: 3, signalSamples: 4 }
+    const previous = { deliveredFrames: 10, sentFrames: 9, rateSamples: 2, chestSamples: 1, goodSignalSamples: 0, signalSamples: 0 }
+    expect(isGoodSignalWindow(current, previous)).toBe(true)
+    const record = liveTestDiagnosticRecord(new Date('2026-11-13T12:00:00Z'), current, previous, 2.5, 0.75)
+    expect(record).toEqual({ timestamp: '2026-11-13T12:00:00.000Z', deliveredFrames: 20, sentFrames: 18, rateSamples: 5, chestSamples: 5, cpuPercent: 2.5, goodSignalWindowShare: 0.75 })
+    expect(Object.keys(record)).toEqual(['timestamp', 'deliveredFrames', 'sentFrames', 'rateSamples', 'chestSamples', 'cpuPercent', 'goodSignalWindowShare'])
+    expect(JSON.stringify(record)).not.toMatch(/api|key|frameData|breathingRate|chestTrace|value/i)
   })
 
-  it('accepts only monotonic non-negative counter snapshots', () => {
-    expect(validLiveTestCounters({ deliveredFrames: 20, sentFrames: 18 })).toBe(true)
-    expect(validLiveTestCounters({ deliveredFrames: 1, sentFrames: 2 })).toBe(false)
-    expect(validLiveTestCounters({ deliveredFrames: 1, sentFrames: 1, breathingRate: 12 })).toBe(false)
+  it('accepts only the exact non-negative counter schema', () => {
+    expect(validLiveTestCounters(EMPTY_LIVE_TEST_COUNTERS)).toBe(true)
+    expect(validLiveTestCounters({ ...EMPTY_LIVE_TEST_COUNTERS, sentFrames: 2, deliveredFrames: 1 })).toBe(false)
+    expect(validLiveTestCounters({ ...EMPTY_LIVE_TEST_COUNTERS, signalSamples: 1, goodSignalSamples: 2 })).toBe(false)
+    expect(validLiveTestCounters({ ...EMPTY_LIVE_TEST_COUNTERS, breathingRate: 12 })).toBe(false)
   })
-  it('allowlists a timestamp-only media release event', () => {
-    expect(validLiveTestEvent(LIVE_TEST_RELEASE_EVENT)).toBe(true)
-    expect(validLiveTestEvent('breathing-rate')).toBe(false)
-    expect(liveTestEventRecord(new Date('2026-11-14T00:00:00Z'), LIVE_TEST_RELEASE_EVENT)).toEqual({ timestamp: '2026-11-14T00:00:00.000Z', event: 'media-tracks-stopped' })
+
+  it('allowlists lifecycle events, camera label, and integer SDK error code without arbitrary fields', () => {
+    const events = [{ event: 'session-start', cameraLabel: 'Camo USB' }, { event: 'pacer-start' }, { event: 'pacer-end' }, { event: 'stop-clicked' }, { event: 'media-tracks-stopped' }, { event: 'sdk-error', code: 7 }]
+    expect(events.every(validLiveTestEvent)).toBe(true)
+    expect(validLiveTestEvent({ event: 'sdk-error', code: 7, message: 'raw detail' })).toBe(false)
+    expect(validLiveTestEvent({ event: 'session-start', cameraLabel: 'camera\nsecret' })).toBe(false)
+    expect(validLiveTestEvent({ event: 'breathing-rate', value: 12 })).toBe(false)
+    expect(liveTestEventRecord(new Date('2026-11-14T00:00:00Z'), { event: 'media-tracks-stopped' })).toEqual({ timestamp: '2026-11-14T00:00:00.000Z', event: 'media-tracks-stopped' })
   })
 })

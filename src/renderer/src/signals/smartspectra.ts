@@ -46,6 +46,11 @@ export class SmartSpectraSignalSource implements SignalSource {
   private liveTestEnabled = false
   private deliveredFrames = 0
   private sentFrames = 0
+  private rateSamples = 0
+  private chestSamples = 0
+  private goodSignalSamples = 0
+  private signalSamples = 0
+  private sessionEventRecorded = false
   private counterTimer?: ReturnType<typeof setInterval>
 
   async listCameras(): Promise<CameraDevice[]> {
@@ -62,6 +67,11 @@ export class SmartSpectraSignalSource implements SignalSource {
     this.reconnect = new ReconnectionPolicy(retryAttemptsForLiveTest(liveTest.enabled))
     this.deliveredFrames = 0
     this.sentFrames = 0
+    this.rateSamples = 0
+    this.chestSamples = 0
+    this.goodSignalSamples = 0
+    this.signalSamples = 0
+    this.sessionEventRecorded = false
     if (liveTest.enabled) this.counterTimer = setInterval(() => this.reportLiveTestCounters(), 1_000)
     this.listener = listener
     this.options = options
@@ -73,7 +83,12 @@ export class SmartSpectraSignalSource implements SignalSource {
 
   private async startAttempt(cameraId: string): Promise<void> {
     const cameras = await this.listCameras()
-    if (!cameras.some((camera) => camera.id === cameraId)) throw new Error('The selected camera is no longer available. Choose another camera.')
+    const camera = cameras.find((candidate) => candidate.id === cameraId)
+    if (!camera) throw new Error('The selected camera is no longer available. Choose another camera.')
+    if (this.liveTestEnabled && !this.sessionEventRecorded) {
+      window.breathebreak.recordLiveTestEvent({ event: 'session-start', cameraLabel: camera.label || 'Unlabeled camera' })
+      this.sessionEventRecorded = true
+    }
     this.warmup = new WarmupGate()
     this.quality = { kind: 'warming', message: 'Preparing the signal' }
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { deviceId: { exact: cameraId }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } })
@@ -102,6 +117,10 @@ export class SmartSpectraSignalSource implements SignalSource {
     const chest = breathing.upperTrace.at(-1)
     const abdomen = breathing.lowerTrace.at(-1)
     const quality = this.warmup.isReady() ? this.quality : { kind: 'warming' as const, message: 'Warming up the breathing signal' }
+    this.signalSamples += 1
+    if (quality.kind === 'ok') this.goodSignalSamples += 1
+    if (rate) this.rateSamples += 1
+    if (chest) this.chestSamples += 1
     this.listener?.({
       timestampMs: timestampUs / 1000,
       breathingRate: rate ? { value: rate.value ?? 0, confidence: rate.confidence ?? 0, stable: rate.stable ?? false } : undefined,
@@ -112,6 +131,7 @@ export class SmartSpectraSignalSource implements SignalSource {
   }
 
   private async handleError(code: number, message: string, retryable: boolean): Promise<void> {
+    if (this.liveTestEnabled) window.breathebreak.recordLiveTestEvent({ event: 'sdk-error', code })
     if (this.stopping || this.recovering) return
     if (!retryable && code !== SmartSpectraErrorCode.kSustainedLowFrameRate) {
       await this.stop()
@@ -157,11 +177,11 @@ export class SmartSpectraSignalSource implements SignalSource {
   }
 
   private releaseMediaStream(): void {
-    if (stopMediaStream(this.stream) > 0 && this.liveTestEnabled) window.breathebreak.recordLiveTestEvent('media-tracks-stopped')
+    if (stopMediaStream(this.stream) > 0 && this.liveTestEnabled) window.breathebreak.recordLiveTestEvent({ event: 'media-tracks-stopped' })
   }
 
   private reportLiveTestCounters(): void {
-    if (this.liveTestEnabled) window.breathebreak.updateLiveTestCounters({ deliveredFrames: this.deliveredFrames, sentFrames: this.sentFrames })
+    if (this.liveTestEnabled) window.breathebreak.updateLiveTestCounters({ deliveredFrames: this.deliveredFrames, sentFrames: this.sentFrames, rateSamples: this.rateSamples, chestSamples: this.chestSamples, goodSignalSamples: this.goodSignalSamples, signalSamples: this.signalSamples })
   }
 
   private release(): void {

@@ -2,11 +2,14 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { bindSmartSpectraIpc } from '@smartspectra/node-sdk/main'
-import { isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH, liveTestDiagnosticRecord, liveTestEventRecord, type LiveTestCounters, validLiveTestCounters, validLiveTestEvent } from '../shared/liveTest'
+import { EMPTY_LIVE_TEST_COUNTERS, isGoodSignalWindow, isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH, liveTestDiagnosticRecord, liveTestEventRecord, type LiveTestCounters, validLiveTestCounters, validLiveTestEvent } from '../shared/liveTest'
 
 const liveTestEnabled = isLiveTestEnabled(process.env.BREATHEBREAK_LIVE_TEST)
 const diagnosticPath = resolve(process.cwd(), LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH)
-let liveTestCounters: LiveTestCounters = { deliveredFrames: 0, sentFrames: 0 }
+let liveTestCounters: LiveTestCounters = EMPTY_LIVE_TEST_COUNTERS
+let previousLiveTestCounters: LiveTestCounters = EMPTY_LIVE_TEST_COUNTERS
+let goodSignalWindows = 0
+let totalSignalWindows = 0
 let diagnosticTimer: ReturnType<typeof setInterval> | undefined
 
 function startLiveTestDiagnostics(): void {
@@ -14,7 +17,11 @@ function startLiveTestDiagnostics(): void {
   mkdirSync(dirname(diagnosticPath), { recursive: true })
   diagnosticTimer = setInterval(() => {
     const cpuPercent = app.getAppMetrics().reduce((total, metric) => total + metric.cpu.percentCPUUsage, 0)
-    appendFileSync(diagnosticPath, JSON.stringify(liveTestDiagnosticRecord(new Date(), liveTestCounters, cpuPercent)) + '\n', { encoding: 'utf8' })
+    totalSignalWindows += 1
+    if (isGoodSignalWindow(liveTestCounters, previousLiveTestCounters)) goodSignalWindows += 1
+    const record = liveTestDiagnosticRecord(new Date(), liveTestCounters, previousLiveTestCounters, cpuPercent, goodSignalWindows / totalSignalWindows)
+    previousLiveTestCounters = liveTestCounters
+    appendFileSync(diagnosticPath, JSON.stringify(record) + '\n', { encoding: 'utf8' })
   }, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS)
 }
 
@@ -50,7 +57,15 @@ app.whenReady().then(() => {
     if (liveTestEnabled && validLiveTestCounters(counters)) liveTestCounters = counters
   })
   ipcMain.on('app:record-live-test-event', (_event, event: unknown) => {
-    if (liveTestEnabled && validLiveTestEvent(event)) appendFileSync(diagnosticPath, JSON.stringify(liveTestEventRecord(new Date(), event)) + '\n', { encoding: 'utf8' })
+    if (liveTestEnabled && validLiveTestEvent(event)) {
+      if (event.event === 'session-start') {
+        liveTestCounters = EMPTY_LIVE_TEST_COUNTERS
+        previousLiveTestCounters = EMPTY_LIVE_TEST_COUNTERS
+        goodSignalWindows = 0
+        totalSignalWindows = 0
+      }
+      appendFileSync(diagnosticPath, JSON.stringify(liveTestEventRecord(new Date(), event)) + '\n', { encoding: 'utf8' })
+    }
   })
   startLiveTestDiagnostics()
   createWindow()
