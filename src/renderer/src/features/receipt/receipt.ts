@@ -1,8 +1,14 @@
-export const RECEIPT_BASELINE_SECONDS = 25
+export const RECEIPT_BASELINE_TARGET_READINGS = 3
+export const RECEIPT_BASELINE_MAX_SECONDS = 45
 export const RECEIPT_GUIDED_SECONDS = 45
-export const RECEIPT_TOTAL_SECONDS_APPROXIMATE = 75
+export const RECEIPT_TOTAL_SECONDS_APPROXIMATE = 90
 export const RECEIPT_INSUFFICIENT_COPY = 'Not enough stable readings for a receipt'
 export const RECEIPT_DISCLOSURE = 'Measured by SmartSpectra. Not a score. Not medical.'
+export function baselineCompletionReason(acceptedReadings: number, elapsedSeconds: number): 'count' | 'cap' | undefined {
+  if (acceptedReadings >= RECEIPT_BASELINE_TARGET_READINGS) return 'count'
+  if (elapsedSeconds >= RECEIPT_BASELINE_MAX_SECONDS) return 'cap'
+  return undefined
+}
 
 export type ReceiptMeasurementPhase = 'baseline' | 'guided'
 export type ReceiptReading = Readonly<{ value: number; phase: ReceiptMeasurementPhase; stable: boolean; gated: boolean }>

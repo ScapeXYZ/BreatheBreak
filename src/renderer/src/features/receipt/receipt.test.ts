@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { advanceReceiptTimeline, calculateReceipt, RECEIPT_DISCLOSURE, RECEIPT_GUIDED_SECONDS, RECEIPT_INSUFFICIENT_COPY, type ReceiptReading } from './receipt'
+import { advanceReceiptTimeline, baselineCompletionReason, calculateReceipt, RECEIPT_BASELINE_MAX_SECONDS, RECEIPT_BASELINE_TARGET_READINGS, RECEIPT_DISCLOSURE, RECEIPT_GUIDED_SECONDS, RECEIPT_INSUFFICIENT_COPY, type ReceiptReading } from './receipt'
 
 const reading = (value: number, phase: 'baseline' | 'guided', stable = true, gated = true): ReceiptReading => ({ value, phase, stable, gated })
 
@@ -31,6 +31,13 @@ describe('Reset Receipt calculation (simulation-only fixtures)', () => {
     expect(RECEIPT_GUIDED_SECONDS).toBe(45)
     expect(RECEIPT_INSUFFICIENT_COPY).toBe('Not enough stable readings for a receipt')
     expect(RECEIPT_DISCLOSURE).toBe('Measured by SmartSpectra. Not a score. Not medical.')
+  })
+  it('completes baseline at three readings or the 45-second cap', () => {
+    expect(RECEIPT_BASELINE_TARGET_READINGS).toBe(3)
+    expect(RECEIPT_BASELINE_MAX_SECONDS).toBe(45)
+    expect(baselineCompletionReason(3, 2)).toBe('count')
+    expect(baselineCompletionReason(1, 45)).toBe('cap')
+    expect(baselineCompletionReason(2, 44.999)).toBeUndefined()
   })
 })
 

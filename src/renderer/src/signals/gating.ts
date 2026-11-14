@@ -8,7 +8,6 @@ const emptyRateGateCounts = (): RateGateCounts => ({ warmup: 0, unstable: 0, low
 export function breathingRateGate(sample: SignalSample): Readonly<{ reason: RateGateReason; value?: number }> {
   const rate = sample.breathingRate
   if (!rate || !Number.isFinite(rate.timestampMs) || rate.timestampMs <= 0) return { reason: 'badTimestamp' }
-  if (sample.quality.kind === 'warming') return { reason: 'warmup' }
   if (!Number.isFinite(rate.confidence) || rate.confidence < BREATHING_RATE_MIN_CONFIDENCE) return { reason: 'lowConfidence' }
   if (!rate.stable) return { reason: 'unstable' }
   if (!Number.isFinite(rate.value) || rate.value < 4 || rate.value > 45) return { reason: 'outOfRange' }
@@ -35,11 +34,6 @@ export class UniqueRateGateCounter {
     this.totals[result.reason] += 1
     return true
   }
-}
-
-export class WarmupGate {
-  constructor(private readonly durationMs = 30_000, private readonly startedAtMs = Date.now()) {}
-  isReady(nowMs = Date.now()): boolean { return nowMs - this.startedAtMs >= this.durationMs }
 }
 
 export function median(values: number[]): number | undefined {

@@ -13,13 +13,13 @@ describe('real SmartSpectra schema mapping (synthetic values only)', () => {
     expect(usableBreathingRate(mapped.rateSamples[0])).toBe(12)
   })
 
-  it('reproduces no valid reading during warm-up or below documented confidence, then accepts the same schema when valid', () => {
+  it('uses SDK confidence and stability regardless of separate validation status', () => {
     const timestampUs = 1_700_000_000_123_000
     const encode = (confidence: number, stable: boolean) => Metrics.encode({ breathing: { rate: [{ value: 12, confidence, stable, timestamp: timestampUs }] } }).finish()
     const warm = mapSmartSpectraMetrics(decodeMetrics(encode(60, true)), timestampUs, { kind: 'warming' }).rateSamples[0]
     const low = mapSmartSpectraMetrics(decodeMetrics(encode(40, false)), timestampUs, { kind: 'ok' }).rateSamples[0]
     const accepted = mapSmartSpectraMetrics(decodeMetrics(encode(45, true)), timestampUs, { kind: 'poor' }).rateSamples[0]
-    expect(usableBreathingRate(warm)).toBeUndefined()
+    expect(usableBreathingRate(warm)).toBe(12)
     expect(usableBreathingRate(low)).toBeUndefined()
     expect(usableBreathingRate(accepted)).toBe(12)
   })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { breathingRateGate, BREATHING_RATE_MIN_CONFIDENCE, estimateBaseline, median, UniqueRateGateCounter, usableBreathingRate, WarmupGate } from './gating'
+import { breathingRateGate, BREATHING_RATE_MIN_CONFIDENCE, estimateBaseline, median, UniqueRateGateCounter, usableBreathingRate } from './gating'
 import type { SignalQuality, SignalSample } from './types'
 
 const sample = (overrides: Partial<SignalSample['breathingRate']> = {}, quality: SignalQuality = { kind: 'ok' }): SignalSample => ({
@@ -10,7 +10,7 @@ const sample = (overrides: Partial<SignalSample['breathingRate']> = {}, quality:
 
 describe('documented breathing-rate gate', () => {
   it('classifies every rejection reason without retaining a physiological value', () => {
-    expect(breathingRateGate(sample({}, { kind: 'warming' })).reason).toBe('warmup')
+    expect(breathingRateGate(sample({}, { kind: 'warming' })).reason).toBe('accepted')
     expect(breathingRateGate(sample({ confidence: 44 })).reason).toBe('lowConfidence')
     expect(breathingRateGate(sample({ stable: false })).reason).toBe('unstable')
     expect(breathingRateGate(sample({ value: 3.9 })).reason).toBe('outOfRange')
@@ -41,12 +41,7 @@ describe('documented breathing-rate gate', () => {
   })
 })
 
-describe('warm-up and baseline', () => {
-  it('defaults to the documented 30-second breathing analysis window', () => {
-    const gate = new WarmupGate(undefined, 1_000)
-    expect(gate.isReady(30_999)).toBe(false)
-    expect(gate.isReady(31_000)).toBe(true)
-  })
+describe('baseline statistics', () => {
   it('computes median for odd and even samples without mutating input', () => {
     const values = [9, 1, 5, 3]
     expect(median(values)).toBe(4)

@@ -34,7 +34,7 @@ describe('session state', () => {
     useSession.getState().setConsent(true); useSession.getState().begin()
     expect(useSession.getState().receiptPhase).toBe('baseline')
     useSession.getState().startGuided(); expect(useSession.getState().receiptPhase).toBe('baseline')
-    useSession.getState().markBaselineReady()
+    useSession.getState().markBaselineReady('cap')
     useSession.getState().startGuided(); expect(useSession.getState().receiptPhase).toBe('guided')
     useSession.getState().endGuided(); expect(useSession.getState().receiptPhase).toBe('complete')
     useSession.getState().finish(); expect(useSession.getState().receiptPhase).toBe('idle')
@@ -42,10 +42,24 @@ describe('session state', () => {
 
   it('makes the real-source pacer ready after baseline without requiring a valid rate', () => {
     useSession.setState({ source: 'smartspectra', receiptPhase: 'baseline', baselineReady: false, gatedRates: [], sample: undefined })
-    useSession.getState().markBaselineReady()
+    useSession.getState().markBaselineReady('cap')
     expect(useSession.getState()).toMatchObject({ source: 'smartspectra', receiptPhase: 'baseline', baselineReady: true, gatedRates: [] })
     useSession.getState().startGuided()
     expect(useSession.getState().receiptPhase).toBe('guided')
+  })
+
+  it('unlocks after three accepted readings without starting the pacer', () => {
+    useSession.setState({ receiptPhase: 'baseline', baselineReady: false, baselineAcceptedCount: 0, gatedRates: [] })
+    useSession.getState().receiveRate(10); useSession.getState().receiveRate(11)
+    expect(useSession.getState()).toMatchObject({ baselineReady: false, baselineAcceptedCount: 2, receiptPhase: 'baseline' })
+    useSession.getState().receiveRate(12)
+    expect(useSession.getState()).toMatchObject({ baselineReady: true, baselineAcceptedCount: 3, baselineCompletionReason: 'count', receiptPhase: 'baseline' })
+  })
+
+  it('unlocks at the cap with fewer readings and remains user-started', () => {
+    useSession.setState({ receiptPhase: 'baseline', baselineReady: false, baselineAcceptedCount: 1, gatedRates: [10] })
+    useSession.getState().markBaselineReady('cap')
+    expect(useSession.getState()).toMatchObject({ baselineReady: true, baselineCompletionReason: 'cap', receiptPhase: 'baseline' })
   })
 
   it('retains the last sample while reconnecting', () => {

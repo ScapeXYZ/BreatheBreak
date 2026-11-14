@@ -1,7 +1,7 @@
 import { MetricType, SmartSpectraErrorCode, SmartSpectraSDK, ValidationCode } from '@smartspectra/node-sdk/renderer'
 import { decodeMetrics } from '@smartspectra/node-sdk/messages'
 import { stopMediaStream, videoCameras } from './cameras'
-import { UniqueRateGateCounter, WarmupGate } from './gating'
+import { UniqueRateGateCounter } from './gating'
 import { ReconnectionPolicy, wait } from './reconnection'
 import type { CameraDevice, SignalListener, SignalQuality, SignalSource, SourceStatus } from './types'
 import { retryAttemptsForLiveTest } from '../../../shared/liveTest'
@@ -40,7 +40,6 @@ export class SmartSpectraSignalSource implements SignalSource {
   private listener?: SignalListener
   private options?: StartOptions
   private quality: SignalQuality = { kind: 'warming', message: 'Preparing the signal' }
-  private warmup = new WarmupGate()
   private reconnect = new ReconnectionPolicy()
   private stopping = false
   private recovering = false
@@ -86,7 +85,6 @@ export class SmartSpectraSignalSource implements SignalSource {
     const cameras = await this.listCameras()
     const camera = cameras.find((candidate) => candidate.id === cameraId)
     if (!camera) throw new Error('The selected camera is no longer available. Choose another camera.')
-    this.warmup = new WarmupGate()
     this.quality = { kind: 'warming', message: 'Preparing the signal' }
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { deviceId: { exact: cameraId }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } })
     const sdk = new SmartSpectraSDK({
@@ -110,7 +108,7 @@ export class SmartSpectraSignalSource implements SignalSource {
   private receiveMetrics(buffer: Uint8Array, timestampUs: number): void {
     const decoded = decodeMetrics(buffer)
     if (!decoded.breathing) return
-    const quality = this.warmup.isReady() ? this.quality : { kind: 'warming' as const, message: 'Warming up the breathing signal' }
+    const quality = this.quality
     const mapped = mapSmartSpectraMetrics(decoded, timestampUs, quality)
     this.signalSamples += 1
     if (quality.kind === 'ok') this.goodSignalSamples += 1
@@ -123,6 +121,7 @@ export class SmartSpectraSignalSource implements SignalSource {
       emittedRate = true
     }
     if (!emittedRate) this.listener?.(mapped.traceSample)
+    this.reportLiveTestCounters()
   }
 
   private async handleError(code: number, message: string, retryable: boolean): Promise<void> {
