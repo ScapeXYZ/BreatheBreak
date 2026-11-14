@@ -14,16 +14,19 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 ## Authorized run
 
 1. Launch Reset Receipt only after Claude's authorization.
-2. Confirm no camera permission or SDK processing occurs on application launch.
-3. Select **SmartSpectra SDK** and explicitly select Camo by its displayed device entry.
-4. Verify **Start session** remains disabled until camera selection and consent are complete.
-5. Select consent and press **Start session** once.
-6. Confirm the camera-status line says **Camera: on**, the LIVE indicator is visible, and the signal-quality row progresses without invented values.
-7. Observe the rate placeholder during warm-up and record whether the required “Measuring…” copy is present.
-8. Run only for the duration authorized by Claude. Record sanitized start/end timestamps, duration, error-event count, rate-sample count, and chest-sample count; do not record sample values.
-9. Keep **Stop session** visible and operable throughout. Press it once at the authorized endpoint.
-10. Confirm the camera indicator clears, camera hardware is released, raw session buffers are cleared, and the recap contains only the approved summary and **Source: SmartSpectra**.
-11. Press **Done** and confirm the app returns to Welcome/Consent without stale readings or guided metadata.
+2. Confirm the source is **SmartSpectra SDK** (Real SDK).
+3. Confirm the **DEV SIMULATION** banner is absent.
+4. Confirm the status line says **Live-test log: writing** and note its short run ID.
+5. Confirm Camo is selected by its displayed camera entry.
+6. Only after those four checks, select consent and press **Start session** once.
+7. Confirm no camera permission or SDK processing occurred before Start, and confirm **Start session** was disabled until camera selection and consent were complete.
+8. Confirm the camera-status line says **Camera: on**, the LIVE indicator is visible, and the signal-quality row progresses without invented values.
+9. Observe the rate placeholder during warm-up and record whether the required “Measuring…” copy is present.
+10. Run only for the duration authorized by Claude. Do not record sample values.
+11. Keep **Stop session** visible and operable throughout. Press it once at the authorized endpoint.
+12. Confirm the camera indicator clears, camera hardware is released, raw session buffers are cleared, and the recap contains only the approved summary and **Source: SmartSpectra**.
+13. Click **Copy run report**. Paste the application's Run Report verbatim into the authorized evidence record; do not reconstruct or edit it.
+14. Press **Done** and confirm the app returns to Welcome/Consent without stale readings or guided metadata.
 
 ## After the run
 
@@ -33,6 +36,7 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 4. Verify the camera is also released if the window is closed or a fatal error occurs.
 5. Keep any sanitized diagnostics private and ignored. Do not commit NDJSON or physiological logs.
 6. Report confirmed observations separately from uncertain boundaries. The three-minute gate remains unverified unless an authorized run directly proves its exact duration and stability.
+7. Include the copied Run Report verbatim. Its run ID, session ID, source, timestamps, counts, and release status are the canonical sanitized evidence for that attempt.
 
 ## Abort conditions
 
