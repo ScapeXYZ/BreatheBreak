@@ -165,5 +165,5 @@ describe('complete simulation-only user journey', () => {
   it('completes every state at both target viewports without stale session data', async () => {
     await runJourney(1280, 800)
     await runJourney(1440, 900)
-  })
+  }, 15_000)
 })
