@@ -40,10 +40,10 @@ async function runJourney(width: number, height: number): Promise<void> {
   if (!host) {
     host = document.createElement('div')
     document.body.append(host)
-  root = createRoot(host)
-  await act(async () => root!.render(<App />))
-  expect(document.querySelector('.simulation-disclosure')).toBeNull()
-  expect(document.querySelector('.camera-status')?.textContent).toBe('Camera: off')
+    root = createRoot(host)
+    await act(async () => root!.render(<App />))
+    expect(document.querySelector('.simulation-disclosure')).toBeNull()
+    expect(document.querySelector('.camera-status')?.textContent).toBe('Camera: off')
   } else {
     const existingConsent = document.querySelector<HTMLInputElement>('.consent-check input')!
     if (existingConsent.checked) act(() => existingConsent.click())
@@ -90,7 +90,7 @@ async function runJourney(width: number, height: number): Promise<void> {
   expect(document.body.textContent).toContain('GUIDED, not measured')
   expectSimulationDisclosure()
   await click('Start guided pacing')
-  await advance(63_000)
+  await advance(48_000)
   expect(document.querySelector('.pacer-overlay')?.getAttribute('data-pacer-status')).toBe('complete')
   expect(sessionRecorder.guidedCompletions.size).toBe(1)
   await click('Close')
@@ -147,7 +147,7 @@ beforeEach(() => {
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value), removeItem: (key: string) => values.delete(key), clear: () => values.clear() } })
   Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => null })
   sessionRecorder.clear()
-  useSession.setState({ phase: 'welcome', consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
+  useSession.setState({ phase: 'welcome', receiptPhase: 'idle', consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
 })
 
 afterEach(() => {

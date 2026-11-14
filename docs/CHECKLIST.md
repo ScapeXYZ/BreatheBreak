@@ -7,8 +7,9 @@ Status is evidence-based as of November 14, 2026. `NOT VERIFIED` means the requi
 | Item | Status | Evidence |
 | --- | --- | --- |
 | Reset Receipt product definition | VERIFIED — documentation | `docs/PRODUCT.md` defines the bounded product, receipt calculation, fallback copy, and deferred scope. |
-| 60-second live reset | PARTIAL — simulation only | The existing guided pacer completes through its real 60-second mechanism in the full-journey test, but it is not yet presented as the complete Reset Receipt flow and has no authorized real-device verification. |
-| Start-vs-end receipt | NOT VERIFIED | The current recap still reports elapsed time, arithmetic mean, and reading count. Median start/end calculation and the six-reading rule are not implemented. |
+| About-75-second reset timeline | PARTIAL — code/test | Session state enters an approximately 25-second baseline phase before the existing pacer can enter its 45-second guided phase. Pure transition and simulation journey tests cover the order; automatic baseline timing and real-device behavior remain unverified. |
+| Before-vs-After receipt calculation | VERIFIED — pure function/test only | `features/receipt/receipt.ts` calculates Before from stable gated baseline readings (minimum three), After from the final three stable gated guided-phase readings, rejects values outside 4–45, and omits change when either side is missing. The receipt UI is intentionally not implemented yet. |
+| Receipt copy and source label | VERIFIED — constants/tests only | Exact insufficient-data and “Measured by SmartSpectra. Not a score. Not medical.” copy are defined and tested; presentation remains NOT VERIFIED because receipt UI is out of scope. |
 | Receipt image export | NOT VERIFIED | No export behavior or evidence exists. |
 | Three-step first-run guide | NOT VERIFIED | No three-step onboarding flow or evidence exists. |
 | Reset Receipt product strings | VERIFIED — code | Window title, primary UI brand, README, and package display name use “Reset Receipt”; internal identifiers remain unchanged. |

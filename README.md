@@ -1,6 +1,6 @@
 # Reset Receipt
 
-Reset Receipt is a consent-first Electron prototype for a 60-second guided reset followed by a measured start-vs-end breathing receipt. The current D1–D4 baseline integrates SmartSpectra SDK 3.5.0 and a clearly labelled synthetic development source; the target median receipt and image export remain unimplemented.
+Reset Receipt is a consent-first Electron prototype for an approximately 75-second flow: about 25 seconds of measured baseline followed by a 45-second guided reset and a measured Before-vs-After breathing receipt. The current D1–D4 baseline integrates SmartSpectra SDK 3.5.0 and a clearly labelled synthetic development source. The pure median receipt calculation is implemented and tested; receipt UI and image export remain unimplemented.
 
 This is a non-medical visualization. It does not produce health, stress, diagnostic, or medical scores.
 

@@ -4,7 +4,7 @@ export type PacerStatus = 'ready' | 'running' | 'paused' | 'complete'
 export type PacerSnapshot = { status: PacerStatus; segment: PacerSegment; breathPhase: PacerBreathPhase; countdown: number; paceElapsedMs: number }
 export type PacerClock = { now(): number; setInterval(callback: () => void, milliseconds: number): unknown; clearInterval(id: unknown): void }
 const SETTLE_MS = 3000
-export const PACE_MS = 60000
+export const PACE_MS = 45000
 export class PacerController {
   private status: PacerStatus = 'ready'; private segment: PacerSegment = 'settle'; private breathPhase: PacerBreathPhase = 'inhale'
   private startedAt = 0; private pausedAt = 0; private pausedTotal = 0; private interval?: unknown
