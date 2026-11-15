@@ -86,6 +86,10 @@ describe('Task 3 first-run framing guide contract', () => {
   })
 
   it('keeps Start disabled until explicit consent and never starts from guide navigation', () => {
+    const skip = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Skip guide')!
+    act(() => skip.click())
+    const reveal = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Start a reset')!
+    act(() => reveal.click())
     const start = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Start session')!
     expect(start.disabled).toBe(true)
     expect(source.start).not.toHaveBeenCalled()

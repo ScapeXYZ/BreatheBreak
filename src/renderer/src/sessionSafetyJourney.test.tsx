@@ -37,6 +37,8 @@ describe('forced session safety journey', () => {
 
   async function start(): Promise<void> {
     await act(async () => { root.render(<App sourceOverrides={{ smartspectra: source }} />); await Promise.resolve() })
+    const revealButton = [...document.querySelectorAll('button')].find(button => button.textContent === 'Start a reset')!
+    act(() => revealButton.click())
     const startButton = [...document.querySelectorAll('button')].find(button => button.textContent === 'Start session')!
     await act(async () => { startButton.click(); await new Promise(resolve => setTimeout(resolve, 300)) })
     expect(document.body.textContent).toContain('Session limit: 3:00 remaining')

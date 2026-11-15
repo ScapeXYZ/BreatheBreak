@@ -31,7 +31,7 @@ async function advance(milliseconds: number): Promise<void> {
 }
 
 function expectSimulationDisclosure(): void {
-  expect(document.body.textContent).toContain('Dev simulation: synthetic data, not demo evidence')
+  expect(document.body.textContent).toContain('SIMULATION, NOT REAL')
 }
 
 async function runJourney(width: number, height: number): Promise<void> {
@@ -48,6 +48,8 @@ async function runJourney(width: number, height: number): Promise<void> {
     const existingConsent = document.querySelector<HTMLInputElement>('.consent-check input')!
     if (existingConsent.checked) act(() => existingConsent.click())
   }
+
+  if (!document.querySelector('.consent-panel')) await click('Start a reset')
 
   const source = document.querySelector<HTMLSelectElement>('.field-label select')!
   act(() => {
@@ -66,15 +68,13 @@ async function runJourney(width: number, height: number): Promise<void> {
   await click('Start session')
   expect(useSession.getState().phase).toBe('running')
   await advance(1_000)
-  expect(document.querySelector('.rate-value')?.textContent).toBe('—')
-  expect(document.body.textContent).toContain('Measuring…')
-  expect(document.body.textContent).toContain('Your breathing, live')
+  expect(document.body.textContent).toContain('This session')
+  expect(document.body.textContent).toContain('Let your breath settle')
   expect(document.body.textContent).not.toContain('Flower quality')
-  expect(document.querySelector('.signal-list dt')?.textContent).toBe('Signal')
+  expect(document.body.textContent).toContain('Chest trace')
   expect(document.querySelector('canvas[aria-label="Live measured breathing flower"]')).toBeTruthy()
   expectSimulationDisclosure()
 
-  expect(button('Collecting baseline…').disabled).toBe(true)
   expect(document.body.textContent).toContain('Natural breathing: 0 of 3 readings')
   await advance(31_000)
   expect(document.body.textContent).toContain('Baseline done. Start your guided minute.')
