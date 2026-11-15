@@ -96,12 +96,11 @@ async function runJourney(width: number, height: number): Promise<void> {
   expect(document.activeElement).toBe(opener)
 
   const ratesAtStop = [...useSession.getState().gatedRates]
-  const expectedAverage = ratesAtStop.reduce((sum, rate) => sum + rate, 0) / ratesAtStop.length
   await click('Stop session')
   expect(useSession.getState().phase).toBe('recap')
   await advance(300)
   expect(useSession.getState().recap).toMatchObject({
-    averageBreathingRate: expectedAverage,
+    receiptKind: 'full',
     sampleCount: ratesAtStop.length,
     source: 'simulation',
     guidedPaceCompleted: true
@@ -110,14 +109,13 @@ async function runJourney(width: number, height: number): Promise<void> {
   expect(useSession.getState().gatedRates).toEqual([])
   expect(useSession.getState().sample).toBeUndefined()
   expect(sessionRecorder.size).toBe(0)
-  expect(document.body.textContent).toContain('Guided pace completed')
-  expect(document.body.textContent).toContain('Guided, not measured')
+  expect(document.body.textContent).toContain('Guide pace4s in · 6s out')
   expectSimulationDisclosure()
 
   await click('Done')
   expect(useSession.getState()).toMatchObject({ phase: 'ready', recap: undefined, gatedRates: [], sample: undefined })
   await advance(300)
-  expect(document.body.textContent).toContain('Welcome / Consent')
+  expect(document.body.textContent).toContain('Before you begin')
   expect(button('Start session').disabled).toBe(false)
   expectSimulationDisclosure()
 
@@ -141,7 +139,7 @@ beforeAll(() => {
 beforeEach(() => {
   vi.clearAllTimers()
   vi.setSystemTime(new Date('2026-11-13T12:00:00Z'))
-  const values = new Map<string, string>()
+  const values = new Map<string, string>([['breathebreak.guideSeen.v1', 'true']])
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value), removeItem: (key: string) => values.delete(key), clear: () => values.clear() } })
   Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => null })
   Object.defineProperty(window, 'breathebreak', { configurable: true, value: { getRuntimeInfo: vi.fn(), getLiveTestConfig: vi.fn().mockResolvedValue({enabled:false,writing:false,runId:''}), beginLiveTestSession:vi.fn(),endLiveTestSession:vi.fn(),copyLiveTestRunReport:vi.fn(),updateLiveTestCounters: vi.fn(), recordLiveTestEvent: vi.fn() } })

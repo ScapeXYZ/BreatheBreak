@@ -6,6 +6,17 @@ The pure Before/After median calculation is implemented and tested offline. The 
 
 This is a non-medical visualization. It does not produce health, stress, diagnostic, or medical scores.
 
+## Simulation-only interface review
+
+```powershell
+cd C:\dev\reset-receipt-ui
+npm run dev:sim
+```
+
+No camera or key needed. Synthetic data, clearly labeled. For checking the interface, not evidence of real sensing.
+
+Simulation-only mode is available only when running from source. It disables SmartSpectra module loading and IPC binding, denies camera permissions, starts directly in simulation, and disables environment-file loading. Packaged builds always use the normal production configuration.
+
 ## Install and validate
 
 Requirements: a supported Node.js/npm environment, an OS-supported camera for manual live verification, and your own SmartSpectra API key.

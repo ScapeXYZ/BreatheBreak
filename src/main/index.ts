@@ -1,10 +1,13 @@
-import { app, BrowserWindow, clipboard, ipcMain, powerMonitor, shell, type WebContents } from 'electron'
+import { app, BrowserWindow, clipboard, ipcMain, powerMonitor, session, shell, type WebContents } from 'electron'
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { dirname, join, resolve } from 'node:path'
-import { bindSmartSpectraIpc } from '@smartspectra/node-sdk/main'
 import { EMPTY_LIVE_TEST_COUNTERS, formatLiveTestRunReport, isGoodSignalWindow, isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH, liveTestAcceptedReadingRecord, liveTestDiagnosticRecord, liveTestEventRecord, liveTestLaunchRecord, LiveTestSessionEvidence, type LiveTestCounters, type LiveTestSessionSummary, validBeginLiveTestSessionRequest, validEndLiveTestSessionRequest, validLiveTestCounters, validLiveTestEvent } from '../shared/liveTest'
 import { SessionSafetyController, type ForcedSessionStopReason } from './sessionSafety'
+import { shouldBindSmartSpectra, simulationOnlyForRuntime } from '../shared/simulationOnly'
+
+declare const __BREATHEBREAK_SIMULATION_ONLY__: boolean
+const simulationOnly=simulationOnlyForRuntime(app.isPackaged,__BREATHEBREAK_SIMULATION_ONLY__)
 
 const liveTestEnabled = isLiveTestEnabled(process.env.BREATHEBREAK_LIVE_TEST)
 const diagnosticPath = resolve(process.cwd(), LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH)
@@ -36,7 +39,7 @@ function startLiveTestDiagnostics(): void {
   }, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS)
 }
 
-function createWindow(): void {
+async function createWindow(): Promise<void> {
   const window = new BrowserWindow({
     width: 1180,
     height: 800,
@@ -51,7 +54,7 @@ function createWindow(): void {
       webSecurity: true
     }
   })
-  bindSmartSpectraIpc(window, { logger: () => { /* Avoid forwarding SDK diagnostics. */ } })
+  if(shouldBindSmartSpectra(simulationOnly)){const{bindSmartSpectraIpc}=await import('@smartspectra/node-sdk/main');bindSmartSpectraIpc(window,{logger:()=>{/* Avoid forwarding SDK diagnostics. */}})}
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://')) void shell.openExternal(url)
     return { action: 'deny' }
@@ -61,7 +64,8 @@ function createWindow(): void {
   else void window.loadFile(join(__dirname, '../renderer/index.html'))
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async() => {
+  if(simulationOnly){session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));session.defaultSession.setPermissionCheckHandler(()=>false)}
   powerMonitor.on('suspend',()=>safety.suspend())
   powerMonitor.on('lock-screen',()=>safety.lockScreen())
   ipcMain.handle('app:get-runtime-info', () => ({ platform: process.platform, version: app.getVersion() }))
@@ -107,8 +111,8 @@ app.whenReady().then(() => {
     }
   })
   startLiveTestDiagnostics()
-  createWindow()
-  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })
+  await createWindow()
+  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) void createWindow() })
 })
 
 app.on('before-quit', () => { safety.end();if (diagnosticTimer) clearInterval(diagnosticTimer) })

@@ -6,6 +6,7 @@ import type { BeginLiveTestSessionRequest, EndLiveTestSessionRequest, LiveTestCo
 import type { ForcedSessionStopReason } from '../main/sessionSafety'
 
 contextBridge.exposeInMainWorld('breathebreak', {
+  simulationOnly: false,
   getRuntimeInfo: (): Promise<{ platform: string; version: string }> => ipcRenderer.invoke('app:get-runtime-info'),
   getLiveTestConfig: (): Promise<LiveTestConfig> => ipcRenderer.invoke('app:get-live-test-config'),
   beginLiveTestSession: (request: BeginLiveTestSessionRequest): Promise<string | undefined> => ipcRenderer.invoke('app:begin-live-test-session', request),
