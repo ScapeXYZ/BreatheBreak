@@ -26,8 +26,10 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 11. Confirm the pacer does not start automatically. Start it explicitly, then preserve the 45-second guided phase.
 12. Run only for the duration authorized by Claude. Do not record sample values.
 13. Keep **Stop session** visible and operable throughout. Press it once at the authorized endpoint.
+    - Confirm the visible session-limit countdown is running. The application automatically stops at three minutes.
+    - If the computer sleeps or locks, do not resume the attempt: the application must stop, release the camera, and show **Session stopped because the computer went to sleep or was locked**.
 14. Confirm the camera indicator clears, camera hardware is released, raw session buffers are cleared, and the recap contains only the approved summary and **Source: SmartSpectra**.
-15. Click **Copy run report**. Confirm it includes baseline completion reason, time to baseline completion, and accepted counts before and after pacer start. Paste the Run Report verbatim; do not reconstruct or edit it.
+15. Click **Copy run report**. Confirm it includes baseline completion reason, time to baseline completion, accepted counts before and after pacer start, wall-clock and active seconds, total pause duration, largest diagnostic-record gap, and times to the last rate and chest samples. Paste the Run Report verbatim; do not reconstruct or edit it.
 16. Press **Done** and confirm the app returns to Welcome/Consent without stale readings or guided metadata.
 
 ## After the run

@@ -21,7 +21,10 @@ Reset Receipt is a consent-first, non-medical breathing experience with an adapt
 - Label a valid receipt exactly: **“Measured by SmartSpectra. Not a score. Not medical.”**
 - Start and end values are observations, not proof of improvement or any medical, stress, recovery, or relaxation outcome.
 - Raw physiological measurements remain in memory only for the active session and are cleared after the immutable receipt summary is created.
-- Authorized live-test diagnostics retain only identity, counts, event timestamps, accepted-reading elapsed times, and confidence-bin totals; they never retain physiological values or raw confidence values.
+- Every session has a visible three-minute maximum and stops automatically at the limit.
+- System suspend or lock-screen events stop the active session, release camera resources, and explain why the session ended.
+- The 45-second pacer uses monotonic elapsed time. A timer jump greater than five seconds marks it **Interrupted**; readings timestamped inside the interrupted stretch are excluded and an interrupted session cannot produce a receipt.
+- Authorized live-test diagnostics retain only identity, counts, event timestamps, accepted-reading elapsed times, confidence-bin totals, and sanitized timing aggregates; they never retain physiological values or raw confidence values.
 
 ## Deferred
 
