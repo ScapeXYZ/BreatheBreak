@@ -71,6 +71,10 @@ Offline automated coverage includes SDK payload mapping, confidence/stability/ra
 
 R3 and R4 produced sanitized real-SDK telemetry on earlier builds. They do not verify the current merged build's receipt UI, three-minute stop, suspend/lock release, or interruption behavior. Those current-build behaviors require the separately authorized R5 hardware run. Simulation, fixtures, and fake sources are never presented as real evidence.
 
+### R5 offline evidence review
+
+R5 run `47cf7492-16c6-4fa7-881b-2503999566b2` used the integrated webcam (`Integrated Webcam (0c45:6d16)`) instead of the planned Camo camera. It lasted 40.971 seconds, produced zero unique breathing-rate samples, reported no SDK errors, logged media tracks stopped, and recorded a 35 ms camera-release delay after Stop. The diagnostics contain cumulative delivered-frame counts but no FPS measurement, so no measured FPS is claimed. The zero-rate outcome is consistent with a session that did not satisfy one or more documented SDK measurement requirements, which include a minimum 25 FPS, but the records do not establish frame rate as the cause. Because the wrong camera was used and no breathing-rate samples were produced, R5 is invalid for the planned Camo Before/After validation.
+
 ## Known limitations
 
 - No Windows installer or code-signed distributable is provided.
