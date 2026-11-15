@@ -6,7 +6,7 @@ export type ExportableReceipt = Readonly<Record<string, unknown> & {
   disclosure: string
 }>
 
-type ReceiptExportInput = Pick<Recap, 'source'|'receiptKind'|'receiptSufficient'|'pacerInterrupted'|'before'|'after'|'change'|'median'|'minimum'|'maximum'|'sampleCount'|'baselineAcceptedCount'|'guidedAcceptedCount'> & {beforeCount?:number;afterCount?:number}
+type ReceiptExportInput = Pick<Recap, 'source'|'receiptKind'|'receiptSufficient'|'pacerInterrupted'|'before'|'after'|'change'|'median'|'minimum'|'maximum'|'sampleCount'|'baselineAcceptedCount'|'guidedAcceptedCount'|'guideInhaleSeconds'|'guideExhaleSeconds'> & {beforeCount?:number;afterCount?:number}
 
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
@@ -17,8 +17,9 @@ export function toExportableReceipt(recap: ReceiptExportInput): ExportableReceip
   const beforeCount=recap.baselineAcceptedCount??recap.beforeCount??0
   const afterCount=recap.guidedAcceptedCount??recap.afterCount??0
   const kind=recap.receiptKind??(recap.receiptSufficient?'full':undefined)
-  if (kind==='full'&&finite(recap.before)&&finite(recap.after)&&finite(recap.change)&&beforeCount>=2&&afterCount>=2) return Object.freeze({source,before:recap.before,after:recap.after,change:recap.change,beforeCount,afterCount,disclosure})
-  if (kind==='partial'&&finite(recap.median)&&finite(recap.minimum)&&finite(recap.maximum)&&recap.sampleCount>=2) return Object.freeze({source,median:recap.median,minimum:recap.minimum,maximum:recap.maximum,count:recap.sampleCount,disclosure})
+  const guide=finite(recap.guideInhaleSeconds)&&finite(recap.guideExhaleSeconds)?{guideInhaleSeconds:recap.guideInhaleSeconds,guideExhaleSeconds:recap.guideExhaleSeconds}:{}
+  if (kind==='full'&&finite(recap.before)&&finite(recap.after)&&finite(recap.change)&&beforeCount>=2&&afterCount>=2) return Object.freeze({source,before:recap.before,after:recap.after,change:recap.change,beforeCount,afterCount,...guide,disclosure})
+  if (kind==='partial'&&finite(recap.median)&&finite(recap.minimum)&&finite(recap.maximum)&&recap.sampleCount>=2) return Object.freeze({source,median:recap.median,minimum:recap.minimum,maximum:recap.maximum,count:recap.sampleCount,...guide,disclosure})
   return undefined
 }
 
@@ -46,9 +47,10 @@ function drawReceipt(context:CanvasRenderingContext2D,receipt:ExportableReceipt)
     context.fillStyle='#eef8f7';context.font='500 52px "Instrument Sans", sans-serif';context.fillText(`${Number(receipt.median).toFixed(1)}`,104,380);context.fillText(`${Number(receipt.minimum).toFixed(1)}–${Number(receipt.maximum).toFixed(1)}`,466,380);context.fillText(`${receipt.count}`,828,380)
     context.fillStyle='#b7c9cf';context.font='20px Figtree, sans-serif';context.fillText('breaths/min',104,418);context.fillText('breaths/min',466,418);context.fillText('stable readings',828,418)
   }
+  if(finite(receipt.guideInhaleSeconds)&&finite(receipt.guideExhaleSeconds)){context.fillStyle='#8fded5';context.font='19px Figtree, sans-serif';context.fillText(`Guide pace · ${receipt.guideInhaleSeconds}s in · ${receipt.guideExhaleSeconds}s out`,104,458)}
   context.strokeStyle='#315266';context.beginPath();context.moveTo(104,474);context.lineTo(1096,474);context.stroke()
   context.fillStyle=simulation?'#f5d77b':'#b7c9cf';context.font='21px Figtree, sans-serif';context.fillText(String(receipt.disclosure),104,530)
-  context.fillStyle='#78949d';context.font='18px Figtree, sans-serif';context.fillText('Camera off. Nothing stored.',104,570)
+  context.fillStyle='#78949d';context.font='18px Figtree, sans-serif';context.fillText('Camera off. This app does not save video.',104,570)
 }
 
 export async function receiptPngBlob(receipt:ExportableReceipt):Promise<Blob> {
