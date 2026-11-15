@@ -1,6 +1,8 @@
 # Reset Receipt
 
-Reset Receipt is a consent-first Electron prototype for an approximately 75-second flow: about 25 seconds of measured baseline followed by a 45-second guided reset and a measured Before-vs-After breathing receipt. The current D1–D4 baseline integrates SmartSpectra SDK 3.5.0 and a clearly labelled synthetic development source. The pure median receipt calculation is implemented and tested; receipt UI and image export remain unimplemented.
+Reset Receipt is a consent-first Electron prototype with an adaptive measured baseline followed by a manually started 45-second guided reset. The baseline completes after three accepted readings or unlocks at a 45-second cap, and every session has a three-minute maximum. The app integrates SmartSpectra SDK 3.5.0 and a clearly labelled synthetic development source.
+
+The pure Before/After median calculation is implemented and tested offline. The current recap shows accepted phase counts and the required insufficient-data behavior, but calculated Before/After values and change are not yet integrated into the UI. PNG export and the three-step first-run framing guide are not implemented.
 
 This is a non-medical visualization. It does not produce health, stress, diagnostic, or medical scores.
 
@@ -30,19 +32,25 @@ SmartSpectra is the default source, but no processing or camera request occurs a
 2. review and select the consent checkbox.
 3. explicitly click **Start session**.
 
-The selected camera ID is remembered locally. If that exact device disappears, Reset Receipt fails closed and asks for a new selection; it does not silently switch cameras. Camera tracks are stopped on Stop, renderer/window teardown, startup errors, and terminal SDK errors. A real device run is still required to verify OS-level permission and lifecycle behavior.
+The selected camera ID is remembered locally. If that exact device disappears, Reset Receipt fails closed and asks for a new selection; it does not silently switch cameras. Camera tracks are stopped on Stop, renderer/window teardown, startup errors, terminal SDK errors, and the forced-stop path used for system suspend or lock.
 
 `DEV SIMULATION` is an explicit option. It is persistently labelled as synthetic and must not be used as SDK or demo evidence.
 
-The repository contains the real SmartSpectra integration code and a separate deterministic simulation source. Current automated tests, screenshots, visual checks, and D3 performance measurements are simulation-only. They do not verify real-device permissions, camera lifecycle behavior, live-SDK rendering performance, or the Phase 0 three-minute stability gate. That stability gate remains unverified.
+The repository contains the real SmartSpectra integration code and a separate deterministic simulation source. Automated unit and integration tests are offline; some use deterministic simulation and some use a fake real-source adapter. Screenshots, visual checks, and D3 performance measurements are simulation-only.
+
+R3 and R4 were real-SDK sessions on earlier application builds and produced sanitized lifecycle and reliability telemetry. They do not verify the current Task 9 three-minute stop, suspend/lock handling, or pacer-interruption behavior. Those Task 9 safety changes currently have offline test coverage only and still require an explicitly authorized current-build real-hardware check.
 
 ## Metrics and quality
 
 The adapter requests only `CHEST_BREATHING`, `BREATHING_RATE`, and optional `ABDOMEN_BREATHING`. It does not request unavailable metrics or `TALKING`, and never calls `requestInsight`. Only a valid, gated chest trace drives the measured flower; the gated breathing rate is displayed and summarized separately. Missing abdomen data does not block the experience.
 
-Rates appear only after an eight-second warm-up, a good signal-quality state, stable/confident output, and a 4–45 breaths/minute range check. Known SDK positioning and lighting hints are translated into neutral, non-medical guidance.
+There is no fixed-clock warm-up rejection. A rate is accepted only when the SDK marks it stable, confidence is at least 45%, its SDK timestamp is valid and not a duplicate, and its value is within 4–45 breaths per minute. Known SDK positioning and lighting hints are translated into neutral, non-medical guidance.
 
-The current migration baseline still displays session elapsed time, the arithmetic mean of valid gated breathing-rate readings, and the valid-reading count. The target Reset Receipt behavior is defined in `docs/PRODUCT.md`: median of the first three and last three stable gated readings, requiring at least six readings. That receipt calculation and image export are not yet implemented. Raw physiological measurements are cleared after the current approved immutable summary is created.
+Before and After each require at least two accepted readings. The pure receipt calculator uses the median of accepted baseline readings for Before and the median of up to the final three accepted guided readings for After. The current recap does not yet display those calculated values; it shows the accepted counts for each phase and exactly **“Not enough stable readings for a receipt”** when either phase has fewer than two.
+
+The guided pacer never starts automatically. The user starts it after baseline completion, and its guided interval remains 45 seconds. A monotonic timer gap over five seconds marks the pacer **Interrupted**, excludes readings collected during the interrupted stretch, and invalidates the Before/After receipt. Sessions stop automatically at three minutes. Electron suspend and lock-screen events also request a stop and camera release. These safety paths are implemented and tested offline, not verified on real hardware in the current build.
+
+Raw physiological measurements are cleared after the current approved immutable summary is created. PNG receipt export and the first-run framing guide remain unimplemented.
 
 Retryable errors, including SDK error 14 (sustained low frame rate), show **Reconnecting** while preserving the last safe garden state. Recovery uses at most three attempts with 500 ms, 1 s, and 2 s delays.
 
