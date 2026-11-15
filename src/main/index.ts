@@ -1,9 +1,10 @@
-import { app, BrowserWindow, clipboard, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, clipboard, ipcMain, powerMonitor, shell, type WebContents } from 'electron'
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { dirname, join, resolve } from 'node:path'
 import { bindSmartSpectraIpc } from '@smartspectra/node-sdk/main'
 import { EMPTY_LIVE_TEST_COUNTERS, formatLiveTestRunReport, isGoodSignalWindow, isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH, liveTestAcceptedReadingRecord, liveTestDiagnosticRecord, liveTestEventRecord, liveTestLaunchRecord, LiveTestSessionEvidence, type LiveTestCounters, type LiveTestSessionSummary, validBeginLiveTestSessionRequest, validEndLiveTestSessionRequest, validLiveTestCounters, validLiveTestEvent } from '../shared/liveTest'
+import { SessionSafetyController, type ForcedSessionStopReason } from './sessionSafety'
 
 const liveTestEnabled = isLiveTestEnabled(process.env.BREATHEBREAK_LIVE_TEST)
 const diagnosticPath = resolve(process.cwd(), LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH)
@@ -15,6 +16,8 @@ let totalSignalWindows = 0
 let diagnosticTimer: ReturnType<typeof setInterval> | undefined
 let activeEvidence: LiveTestSessionEvidence | undefined
 let latestSummary: LiveTestSessionSummary | undefined
+let activeSessionContents: WebContents | undefined
+const safety = new SessionSafetyController((callback,milliseconds)=>setTimeout(callback,milliseconds),(timer)=>clearTimeout(timer as ReturnType<typeof setTimeout>),(reason:ForcedSessionStopReason)=>{if(activeSessionContents&&!activeSessionContents.isDestroyed())activeSessionContents.send('app:forced-session-stop',reason)})
 const appendDiagnostic = (record: object): void => appendFileSync(diagnosticPath, JSON.stringify(record) + '\n', { encoding: 'utf8' })
 
 function startLiveTestDiagnostics(): void {
@@ -26,7 +29,8 @@ function startLiveTestDiagnostics(): void {
     const cpuPercent = app.getAppMetrics().reduce((total, metric) => total + metric.cpu.percentCPUUsage, 0)
     totalSignalWindows += 1
     if (isGoodSignalWindow(liveTestCounters, previousLiveTestCounters)) goodSignalWindows += 1
-    const record = liveTestDiagnosticRecord(new Date(), activeEvidence.identity, liveTestCounters, previousLiveTestCounters, cpuPercent, goodSignalWindows / totalSignalWindows)
+    const diagnosticAt=new Date();const record = liveTestDiagnosticRecord(diagnosticAt, activeEvidence.identity, liveTestCounters, previousLiveTestCounters, cpuPercent, goodSignalWindows / totalSignalWindows)
+    activeEvidence.observeDiagnostic(diagnosticAt)
     previousLiveTestCounters = liveTestCounters
     appendDiagnostic(record)
   }, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS)
@@ -58,9 +62,11 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  powerMonitor.on('suspend',()=>safety.suspend())
+  powerMonitor.on('lock-screen',()=>safety.lockScreen())
   ipcMain.handle('app:get-runtime-info', () => ({ platform: process.platform, version: app.getVersion() }))
   ipcMain.handle('app:get-live-test-config', () => ({ enabled: liveTestEnabled, writing: liveTestEnabled, runId: liveTestEnabled ? runId : '' }))
-  ipcMain.handle('app:begin-live-test-session', (_event, request: unknown) => {
+  ipcMain.handle('app:begin-live-test-session', (ipcEvent, request: unknown) => {
     if (!liveTestEnabled || !validBeginLiveTestSessionRequest(request)) return undefined
     const now = new Date()
     const identity = { runId, sessionId: randomUUID(), source: request.source }
@@ -83,7 +89,16 @@ app.whenReady().then(() => {
     clipboard.writeText(formatLiveTestRunReport(latestSummary)); return true
   })
   ipcMain.on('app:update-live-test-counters', (_event, counters: unknown) => {
-    if (liveTestEnabled && activeEvidence && validLiveTestCounters(counters)) { liveTestCounters = counters; activeEvidence.updateCounters(counters) }
+    if (liveTestEnabled && activeEvidence && validLiveTestCounters(counters)) { liveTestCounters = counters; activeEvidence.updateCounters(counters,new Date()) }
+  })
+  ipcMain.on('app:set-session-active', (ipcEvent, active: unknown) => {
+    if (active === true) {
+      activeSessionContents = ipcEvent.sender
+      safety.begin()
+    } else if (active === false && activeSessionContents === ipcEvent.sender) {
+      safety.end()
+      activeSessionContents = undefined
+    }
   })
   ipcMain.on('app:record-live-test-event', (_event, event: unknown) => {
     if (liveTestEnabled && activeEvidence && validLiveTestEvent(event) && event.event !== 'session-start') {
@@ -96,5 +111,5 @@ app.whenReady().then(() => {
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })
 })
 
-app.on('before-quit', () => { if (diagnosticTimer) clearInterval(diagnosticTimer) })
+app.on('before-quit', () => { safety.end();if (diagnosticTimer) clearInterval(diagnosticTimer) })
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
