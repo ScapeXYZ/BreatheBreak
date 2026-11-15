@@ -32,11 +32,12 @@ type SessionState = {
 }
 
 const rememberedCamera = (): string | undefined => typeof localStorage === 'undefined' ? undefined : localStorage.getItem('breathebreak.cameraId') ?? undefined
+const simulationOnly = (): boolean => typeof window !== 'undefined' && window.breathebreak?.simulationOnly === true
 
 export const useSession = create<SessionState>((set) => ({
-  phase: 'welcome', receiptPhase: 'idle', baselineReady: false, baselineAcceptedCount: 0, pacerInterrupted:false, uniqueRateSampleCount: 0, acceptedRateSampleCount: 0, consented: false, source: 'smartspectra', cameraId: rememberedCamera(), gatedRates: [],
+  phase: 'welcome', receiptPhase: 'idle', baselineReady: false, baselineAcceptedCount: 0, pacerInterrupted:false, uniqueRateSampleCount: 0, acceptedRateSampleCount: 0, consented: false, source: simulationOnly()?'simulation':'smartspectra', cameraId: simulationOnly()?undefined:rememberedCamera(), gatedRates: [],
   setConsent: (consented) => set({ consented, phase: consented ? 'ready' : 'welcome' }),
-  setSource: (source) => set({ source }),
+  setSource: (source) => set({ source: simulationOnly()?'simulation':source, ...(simulationOnly()||source==='simulation'?{cameraId:undefined}:{}) }),
   setCamera: (cameraId) => { if (typeof localStorage !== 'undefined') { if (cameraId) localStorage.setItem('breathebreak.cameraId', cameraId); else localStorage.removeItem('breathebreak.cameraId') } set({ cameraId }) },
   begin: () => set((state) => state.consented ? { phase: 'starting', receiptPhase: advanceReceiptTimeline(state.receiptPhase, 'session-start'), baselineReady: false, baselineAcceptedCount: 0, baselineCompletionReason: undefined, pacerInterrupted:false, uniqueRateSampleCount: 0, acceptedRateSampleCount: 0, error: undefined, startedAt: Date.now(), gatedRates: [], sample: undefined, recap: undefined } : state),
   running: () => set({ phase: 'running' }),

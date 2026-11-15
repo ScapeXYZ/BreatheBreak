@@ -3,6 +3,7 @@ import type { ForcedSessionStopReason } from '../../main/sessionSafety'
 
 interface Window {
   breathebreak: {
+    simulationOnly: boolean
     getRuntimeInfo(): Promise<{ platform: string; version: string }>
     getLiveTestConfig(): Promise<LiveTestConfig>
     beginLiveTestSession(request: BeginLiveTestSessionRequest): Promise<string | undefined>

@@ -24,6 +24,11 @@ body { min-height: 100vh; min-height: 100dvh; }
 .brand { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 500; letter-spacing: var(--tracking-display); }
 .privacy-note { color: var(--color-muted); font-size: var(--text-sm); }
 .simulation-disclosure { position: fixed; inset: 0 0 auto; z-index: var(--z-toast); height: var(--banner-height); display: grid; place-items: center; background: var(--color-warning); color: var(--color-warning-ink); font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.02em; }
+html[data-simulation-only='true'] .simulation-disclosure { font-size: 0; }
+html[data-simulation-only='true'] .simulation-disclosure::after { content: 'SIMULATION, NOT REAL'; font-size: var(--text-sm); font-weight: 800; letter-spacing: .08em; }
+.simulation-profiles { position: fixed; z-index: 5; right: var(--space-lg); bottom: var(--space-lg); width: min(320px,calc(100vw - 2 * var(--space-lg))); padding: var(--space-md); border: var(--rule-hair) solid var(--color-warning); border-radius: var(--radius-card); background: var(--color-paper-2); box-shadow: var(--shadow-panel); }
+.simulation-profiles .field-label { margin-top: 0; }
+.simulation-profiles .button { width: 100%; margin-top: var(--space-sm); }
 .app-stage { width: 100%; max-width: var(--container); height: calc(100dvh - 68px); margin-inline: auto; padding: var(--space-xl) var(--gutter); display: grid; place-items: center; }
 .app--simulation .app-stage { height: calc(100dvh - 68px - var(--banner-height)); }
 .welcome-screen { width: 100%; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr); gap: clamp(var(--space-xl), 6vw, var(--space-3xl)); align-items: center; }

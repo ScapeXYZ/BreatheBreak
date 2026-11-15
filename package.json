@@ -7,6 +7,7 @@
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
+    "dev:sim": "node scripts/dev-sim.mjs",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "screenshots": "node scripts/screenshots/require-simulation.mjs && vite build --config scripts/screenshots/vite.config.mjs && node scripts/screenshots/verify-safe-bundle.mjs && electron scripts/screenshots/main.cjs",
