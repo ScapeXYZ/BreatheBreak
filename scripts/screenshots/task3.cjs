@@ -33,6 +33,31 @@ async function captureFixture(fixture, viewport) {
   return { fixture, viewport, filename, horizontalOverflow: false }
 }
 
+async function captureGuideStep2() {
+  const viewport = { width: 1280, height: 800 }
+  const window = await openFixture('onboarding', viewport)
+  await window.webContents.executeJavaScript(`(()=>{
+    const next=[...document.querySelectorAll('button')].find(node=>node.textContent==='Next')
+    if(!(next instanceof HTMLButtonElement))throw Error('Guide Next button unavailable')
+    next.click()
+    return true
+  })()`, true)
+  let evidence
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    evidence = await window.webContents.executeJavaScript(`({text:document.body.innerText,scrollWidth:document.documentElement.scrollWidth,innerWidth})`, true)
+    if (evidence.text.includes('Step 2 of 3') && evidence.text.includes('Frame for a clear signal')) break
+    await wait(50)
+  }
+  if (!evidence.text.includes('Step 2 of 3') || !evidence.text.includes('Frame for a clear signal')) throw new Error('Guide framing step was not visible')
+  if (evidence.scrollWidth > evidence.innerWidth + 1) throw new Error('Horizontal overflow in guide step 2 at 1280x800')
+  await wait(100)
+  const filename = 'guide-step-2-1280x800.png'
+  const image = await window.webContents.capturePage()
+  await writeFile(path.join(OUTPUT, filename), image.toPNG())
+  window.destroy()
+  return { fixture: 'guide-step-2', viewport, filename, title: 'Frame for a clear signal', horizontalOverflow: false }
+}
+
 async function exportFixture(fixture) {
   const window = await openFixture(fixture, { width: 1280, height: 800 })
   const download = new Promise((resolve, reject) => {
@@ -55,6 +80,7 @@ app.whenReady().then(async () => {
   await mkdir(EXPORTS, { recursive: true })
   const captures = []
   for (const viewport of VIEWPORTS) for (const fixture of FIXTURES) captures.push(await captureFixture(fixture, viewport))
+  captures.push(await captureGuideStep2())
   const exports = [await exportFixture('full-real'), await exportFixture('partial')]
   await writeFile(path.join(OUTPUT, 'verification.json'), JSON.stringify({ methodology: 'Offline fixture bundle with SmartSpectra replaced by a throwing safe stub; all Electron camera permissions denied.', captures, exports }, null, 2))
   app.quit()

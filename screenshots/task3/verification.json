@@ -189,18 +189,28 @@
       },
       "filename": "interrupted-1440x900.png",
       "horizontalOverflow": false
+    },
+    {
+      "fixture": "guide-step-2",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "filename": "guide-step-2-1280x800.png",
+      "title": "Frame for a clear signal",
+      "horizontalOverflow": false
     }
   ],
   "exports": [
     {
       "fixture": "full-real",
       "filename": "reset-receipt-REAL-example.png",
-      "originalFilename": "reset-receipt-2026-11-15-0929.png"
+      "originalFilename": "reset-receipt-2026-11-15-0943.png"
     },
     {
       "fixture": "partial",
       "filename": "reset-receipt-SIMULATION-example.png",
-      "originalFilename": "reset-receipt-SIMULATION-2026-11-15-0929.png"
+      "originalFilename": "reset-receipt-SIMULATION-2026-11-15-0943.png"
     }
   ]
 }
