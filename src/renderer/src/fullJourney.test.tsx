@@ -70,7 +70,7 @@ async function runJourney(width: number, height: number): Promise<void> {
   expect(useSession.getState().phase).toBe('running')
   await advance(1_000)
   expect(document.body.textContent).toContain('This session')
-  expect(document.body.textContent).toContain('Let your breath settle')
+  expect(document.querySelector('.session-instrument')?.textContent).toContain('Natural breathing')
   expect(document.body.textContent).not.toContain('Flower quality')
   expect(document.body.textContent).toContain('Chest trace')
   expect(document.querySelector('canvas[aria-label="Live measured breathing flower"]')).toBeTruthy()

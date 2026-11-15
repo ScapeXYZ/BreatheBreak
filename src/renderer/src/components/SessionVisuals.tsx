@@ -1,6 +1,18 @@
 import type { TracePoint } from '../features/sessions/recorder'
 import { GardenCanvas } from './GardenCanvas'
 
+type InstrumentProps={elapsedSeconds:number;phaseLabel:string;readChest:()=>number|undefined;active:boolean;progress:number}
+export function SessionInstrument({elapsedSeconds,phaseLabel,readChest,active,progress}:InstrumentProps):JSX.Element {
+  const circumference=2*Math.PI*176;const clamped=Math.min(1,Math.max(0,progress))
+  return <div className="session-instrument" role="group" aria-label={`${phaseLabel}, elapsed ${Math.floor(elapsedSeconds/60)} minutes ${elapsedSeconds%60} seconds`}>
+    <div className="instrument-glow" aria-hidden="true"/><div className="instrument-ring">
+      <svg viewBox="0 0 380 380" aria-hidden="true"><defs><linearGradient id="liveRingGradient" x1="0" y1="1" x2="1" y2="0"><stop stopColor="#3e8799"/><stop offset=".56" stopColor="#79e7df"/><stop offset="1" stopColor="#d4fffb"/></linearGradient></defs><circle className="instrument-track" cx="190" cy="190" r="176"/><circle className="instrument-progress instrument-progress--live" cx="190" cy="190" r="176" strokeDasharray={circumference} strokeDashoffset={circumference*(1-clamped)}/></svg>
+      <div className="instrument-flower instrument-flower--live"><GardenCanvas readChest={readChest} active={active} quality="auto"/></div>
+      <div className="instrument-readout"><span>{phaseLabel}</span><strong>{Math.floor(elapsedSeconds/60)}:{String(elapsedSeconds%60).padStart(2,'0')}</strong><small>Elapsed</small></div>
+    </div>
+  </div>
+}
+
 export function WelcomeInstrument():JSX.Element {
   const circumference=2*Math.PI*176
   return <div className="welcome-instrument">
