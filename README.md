@@ -1,85 +1,95 @@
 # Reset Receipt
 
-Reset Receipt is a consent-first Electron prototype with an adaptive measured baseline followed by a manually started 45-second guided reset. The baseline completes after three accepted readings or unlocks at a 45-second cap, and every session has a three-minute maximum. The app integrates SmartSpectra SDK 3.5.0 and a clearly labelled synthetic development source.
+## Overview
 
-The pure Before/After median calculation is implemented and tested offline. The current recap shows accepted phase counts and the required insufficient-data behavior, but calculated Before/After values and change are not yet integrated into the UI. PNG export and the three-step first-run framing guide are not implemented.
+Reset Receipt is a consent-first Electron breathing visualization built with SmartSpectra SDK 3.5.0. It measures an adaptive natural-breathing baseline, offers a manually started 45-second guided pacer, and produces a receipt only from readings that pass the SDK-derived acceptance gate. It is a non-medical wellness prototype, not a diagnostic or treatment tool.
 
-This is a non-medical visualization. It does not produce health, stress, diagnostic, or medical scores.
+## Problem
 
-## Simulation-only interface review
+Camera-based breathing experiences can blur measured signals, guided instructions, and inferred outcomes. Reset Receipt keeps them separate: the chest trace and breathing rate are measurements, the pacer is an instruction, and the receipt reports observations without scoring the user or claiming improvement.
+
+## How it works
+
+1. The user reviews the three-step guide.
+2. In real mode, the user selects a camera, checks explicit consent, and presses **Start session**.
+3. The baseline completes after three accepted readings or unlocks at 45 seconds.
+4. The user may start the 45-second guided pacer; it never starts automatically.
+5. Stop releases the source, clears raw session buffers after creating the recap, and shows a full, partial, insufficient, or interrupted receipt.
+
+Every session has a visible three-minute maximum. Suspend or lock requests an immediate stop. The first-run guide, four receipt states, aggregate-only PNG export, reliability counts, and insufficient-data handling are implemented.
+
+## SmartSpectra integration
+
+The Electron main process binds the official SDK IPC bridge in `src/main/index.ts`. `src/preload/index.ts` loads the official SDK preload bridge, and `src/renderer/src/signals/smartspectra.ts` owns camera acquisition, SDK construction, metric delivery, bounded reconnection, and cleanup. Mapping and acceptance live in `smartspectraMapping.ts` and `gating.ts`.
+
+The app requests chest breathing, breathing rate, and optional abdomen breathing. It does not request LLM Insights. See [SDK integration](docs/SDK_INTEGRATION.md) for the complete wiring and file map.
+
+## Run in simulation
+
+Simulation-only mode is for interface review and offline development. It needs no camera or API key, uses synthetic data, and is persistently labelled **SIMULATION, NOT REAL**.
 
 ```powershell
-cd C:\dev\reset-receipt-ui
+git clone https://github.com/ScapeXYZ/BreatheBreak.git
+cd BreatheBreak
+npm install
 npm run dev:sim
 ```
 
-No camera or key needed. Synthetic data, clearly labeled. For checking the interface, not evidence of real sensing.
+This source-only command disables environment-file loading, substitutes disabled SDK modules before renderer initialization, does not bind SmartSpectra IPC, and denies camera permissions. Simulation output is not evidence of real sensing.
 
-Simulation-only mode is available only when running from source. It disables SmartSpectra module loading and IPC binding, denies camera permissions, starts directly in simulation, and disables environment-file loading. Packaged builds always use the normal production configuration.
+## Run with real hardware
 
-## Install and validate
-
-Requirements: a supported Node.js/npm environment, an OS-supported camera for manual live verification, and your own SmartSpectra API key.
+Use your own SmartSpectra key and never commit it:
 
 ```powershell
-cd C:\dev\breathebreak
-npm install
 Copy-Item .env.example .env
-# Edit .env locally and set VITE_SMARTSPECTRA_API_KEY to your own key.
-npm run typecheck
-npm test
-npm run build
+# Edit .env and set VITE_SMARTSPECTRA_API_KEY to your own key.
+npm run dev
 ```
 
-`.env` and `.env.*` are ignored, with only the credential-free `.env.example` allowed in Git. The approved SDK Electron design requires the key in the renderer-side SDK constructor, so `VITE_SMARTSPECTRA_API_KEY` is present in the renderer bundle at runtime. Treat desktop application keys as distributable credentials and use a suitably restricted/development key according to your SmartSpectra account policy. Never print it, paste it into issues, or commit it.
+Real mode requires an OS-visible camera and an authorized SmartSpectra account. The user must select a camera, check consent, and press **Start session**. Do not start a live session unless camera use and Presage credit consumption are authorized. There is no installer; this repository currently runs from source.
 
-Run `npm run dev` only when you intend to perform manual camera verification; build, typecheck, and tests do not start SDK processing or access the camera.
+## Consent and data handling
 
-## Consent and camera behavior
+The application does not implement video or frame recording. Raw samples are held in bounded memory buffers during a session and cleared after the recap summary is created. A guide-seen flag and selected camera ID are stored in Electron `localStorage`. Sanitized diagnostics are written only in explicitly authorized live-test mode and are gitignored.
 
-SmartSpectra is the default source, but no processing or camera request occurs at launch. The user must:
+SmartSpectra still uses authenticated network services even though this app sets SDK telemetry off. The renderer bundle also contains the configured API key, so a packaged desktop key would be extractable. Read [Privacy and data handling](docs/PRIVACY.md) before using or distributing the app.
 
-1. Choose an available camera.
-2. review and select the consent checkbox.
-3. explicitly click **Start session**.
+## Reading gate and receipt rules
 
-The selected camera ID is remembered locally. If that exact device disappears, Reset Receipt fails closed and asks for a new selection; it does not silently switch cameras. Camera tracks are stopped on Stop, renderer/window teardown, startup errors, terminal SDK errors, and the forced-stop path used for system suspend or lock.
+A unique breathing-rate sample is accepted only when its SDK timestamp is valid, confidence is at least 45, the SDK marks it stable, and its value is within 4–45 breaths per minute. Samples are deduplicated by SDK timestamp; there is no fixed-clock warm-up rejection.
 
-`DEV SIMULATION` is an explicit option. It is persistently labelled as synthetic and must not be used as SDK or demo evidence.
+A full Before/After receipt requires at least two accepted readings in each phase. Before is the baseline median. After is the median of up to the final three guided readings. A partial receipt shows aggregate median, range, and count without a comparison. Fewer than two total accepted readings show **“Not enough stable readings for a receipt.”** An interrupted pacer invalidates the comparison and disables export.
 
-The repository contains the real SmartSpectra integration code and a separate deterministic simulation source. Automated unit and integration tests are offline; some use deterministic simulation and some use a fake real-source adapter. Screenshots, visual checks, and D3 performance measurements are simulation-only.
+## Safety and non-medical boundary
 
-R3 and R4 were real-SDK sessions on earlier application builds and produced sanitized lifecycle and reliability telemetry. They do not verify the current Task 9 three-minute stop, suspend/lock handling, or pacer-interruption behavior. Those Task 9 safety changes currently have offline test coverage only and still require an explicitly authorized current-build real-hardware check.
+The guided pace is not a physiological measurement. The app does not diagnose, recommend treatment, make medical decisions, infer stress or relaxation, or support covert monitoring. Valid real receipts disclose: **“Measured by SmartSpectra. Not a score. Not medical.”** SmartSpectra metrics are subject to Presage's model cards and limitations.
 
-## Metrics and quality
+## What is tested—and what is not
 
-The adapter requests only `CHEST_BREATHING`, `BREATHING_RATE`, and optional `ABDOMEN_BREATHING`. It does not request unavailable metrics or `TALKING`, and never calls `requestInsight`. Only a valid, gated chest trace drives the measured flower; the gated breathing rate is displayed and summarized separately. Missing abdomen data does not block the experience.
+Offline automated coverage includes SDK payload mapping, confidence/stability/range gating, timestamp deduplication, baseline and receipt calculations, pacer timing/interruption, session safety, aggregate export, onboarding, simulation isolation, and a fake real-source journey.
 
-There is no fixed-clock warm-up rejection. A rate is accepted only when the SDK marks it stable, confidence is at least 45%, its SDK timestamp is valid and not a duplicate, and its value is within 4–45 breaths per minute. Known SDK positioning and lighting hints are translated into neutral, non-medical guidance.
+R3 and R4 produced sanitized real-SDK telemetry on earlier builds. They do not verify the current merged build's receipt UI, three-minute stop, suspend/lock release, or interruption behavior. Those current-build behaviors require the separately authorized R5 hardware run. Simulation, fixtures, and fake sources are never presented as real evidence.
 
-Before and After each require at least two accepted readings. The pure receipt calculator uses the median of accepted baseline readings for Before and the median of up to the final three accepted guided readings for After. The current recap does not yet display those calculated values; it shows the accepted counts for each phase and exactly **“Not enough stable readings for a receipt”** when either phase has fewer than two.
+## Known limitations
 
-The guided pacer never starts automatically. The user starts it after baseline completion, and its guided interval remains 45 seconds. A monotonic timer gap over five seconds marks the pacer **Interrupted**, excludes readings collected during the interrupted stretch, and invalidates the Before/After receipt. Sessions stop automatically at three minutes. Electron suspend and lock-screen events also request a stop and camera release. These safety paths are implemented and tested offline, not verified on real hardware in the current build.
+- No Windows installer or code-signed distributable is provided.
+- The renderer-embedded API key is not suitable as a long-term production secret.
+- Current-build real-hardware acceptance remains pending R5.
+- Presage-side network, telemetry, retention, and deletion behavior has not been independently verified by this project.
+- The optional abdomen signal is requested but is not required for the receipt.
+- This prototype is intended for adults; distribution, accessibility, licensing, and privacy review remain product-lead responsibilities.
 
-Raw physiological measurements are cleared after the current approved immutable summary is created. PNG receipt export and the first-run framing guide remain unimplemented.
+## Challenge alignment
 
-Retryable errors, including SDK error 14 (sustained low frame rate), show **Reconnecting** while preserving the last safe garden state. Recovery uses at most three attempts with 500 ms, 1 s, and 2 s delays.
+The first Git commit is dated November 11, 2026, inside the November 4–22 challenge window. The repository integrates the real Presage SmartSpectra SDK and contains private, gitignored evidence of earlier real sessions. Submission readiness—including the demo, DEV post, public-repository check, entrant status, and judge instructions—is tracked in [SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md).
 
-## Privacy and security
+## Project map and license
 
-- Reset Receipt does not record or persist camera frames.
-- A live camera stream is passed to the SmartSpectra SDK only during an explicitly started session.
-- SDK telemetry is disabled by this app.
-- Camera selection is stored locally. Raw breathing samples are held in memory only for the active session and are cleared on successful Stop, manual clearing, startup/Stop failure, terminal source errors, and teardown. The recap retains only its approved immutable summary.
-- Electron keeps `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`, navigation locked down, and uses the official SDK MessagePort IPC bridge.
-
-Review SmartSpectra's own terms and privacy documentation before distributing a build; its SDK and service are separately licensed.
-
-## Architecture
-
-- `src/main`: Electron window and official `bindSmartSpectraIpc` binding.
-- `src/preload`: Reset Receipt's narrow bridge plus the official SDK preload bridge.
-- `src/renderer/src/signals`: typed simulation and real SDK adapters, measurement gates, camera cleanup, and reconnection.
-- `src/renderer/src/store`: deterministic session state and recap.
+- `src/main` — Electron lifecycle, SDK IPC binding, session safety, authorized diagnostics.
+- `src/preload` — constrained application bridge and official SDK preload bridge.
+- `src/renderer/src/signals` — real and simulation sources, mapping, gating, camera cleanup.
+- `src/renderer/src/features` — onboarding, recorder, pacer, receipt, and PNG export.
+- `docs` — product, privacy, SDK, runbook, claims, and submission evidence.
 
 Licensed under the [MIT License](LICENSE).
