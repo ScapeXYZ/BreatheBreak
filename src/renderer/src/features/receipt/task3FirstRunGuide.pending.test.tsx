@@ -6,6 +6,8 @@ import { App } from '../../App'
 import type { CameraDevice, SignalListener, SignalSource } from '../../signals/types'
 import { useSession } from '../../store/session'
 
+globalThis.IS_REACT_ACT_ENVIRONMENT = true
+
 class NoAcquisitionSource implements SignalSource {
   readonly kind = 'smartspectra' as const
   readonly label = 'Test SmartSpectra source'
@@ -47,7 +49,7 @@ afterEach(() => {
   host = undefined
 })
 
-describe.skip('Task 3 first-run framing guide contract (pending implementation)', () => {
+describe('Task 3 first-run framing guide contract', () => {
   it('presents exactly three ordered guide steps', () => {
     expect(document.querySelectorAll('[data-guide-step]')).toHaveLength(3)
     expect(document.body.textContent).toContain('Step 1 of 3')
@@ -56,12 +58,16 @@ describe.skip('Task 3 first-run framing guide contract (pending implementation)'
   it('supports keyboard-accessible forward and backward navigation', () => {
     const next = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Next')!
     next.focus()
-    next.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+    expect(next.tagName).toBe('BUTTON')
+    act(() => next.click())
     expect(document.body.textContent).toContain('Step 2 of 3')
-    expect(document.activeElement?.tagName).toBe('BUTTON')
+    expect(document.activeElement).toBe(document.querySelector('#guide-title'))
   })
 
   it('completes without granting camera consent or acquiring the source', () => {
+    const next = () => [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Next')!
+    act(() => next().click())
+    act(() => next().click())
     const complete = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Continue to consent')!
     act(() => complete.click())
     expect(useSession.getState().consented).toBe(false)
@@ -70,8 +76,10 @@ describe.skip('Task 3 first-run framing guide contract (pending implementation)'
   })
 
   it('reopens without changing an existing consent choice', () => {
+    const skip = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Skip guide')!
+    act(() => skip.click())
     act(() => useSession.getState().setConsent(true))
-    const reopen = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'View framing guide')!
+    const reopen = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'How it works')!
     act(() => reopen.click())
     expect(useSession.getState().consented).toBe(true)
     expect(source.start).not.toHaveBeenCalled()

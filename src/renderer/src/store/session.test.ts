@@ -37,7 +37,7 @@ describe('session state', () => {
     useSession.getState().markBaselineReady('cap')
     useSession.getState().startGuided(); expect(useSession.getState().receiptPhase).toBe('guided')
     useSession.getState().endGuided(); expect(useSession.getState().receiptPhase).toBe('complete')
-    useSession.getState().finish(); expect(useSession.getState().receiptPhase).toBe('idle')
+    useSession.getState().finish({ receipt: { kind: 'insufficient', count: 0, beforeCount: 0, afterCount: 0 } }); expect(useSession.getState().receiptPhase).toBe('idle')
   })
 
   it('makes the real-source pacer ready after baseline without requiring a valid rate', () => {
@@ -78,9 +78,9 @@ describe('session state', () => {
 
   it('builds an immutable recap from gated rates and clears the raw session data', () => {
     useSession.setState({ startedAt: Date.now() - 2_000, gatedRates: [10, 11, 12, 13], sample: { timestampMs: 1, quality: { kind: 'ok' }, chestTrace: 0.4 } })
-    useSession.getState().finish({ guidedPaceCompleted: true })
+    useSession.getState().finish({ guidedPaceCompleted: true, receipt: { kind: 'full', count: 4, beforeCount: 2, afterCount: 2, before: 10.5, after: 12.5, change: 2 } })
     expect(useSession.getState().phase).toBe('recap')
-    expect(useSession.getState().recap).toMatchObject({ sampleCount: 4, averageBreathingRate: 11.5, source: 'smartspectra', guidedPaceCompleted: true })
+    expect(useSession.getState().recap).toMatchObject({ sampleCount: 4, receiptKind: 'full', before: 10.5, after: 12.5, change: 2, source: 'smartspectra', guidedPaceCompleted: true })
     expect(Object.isFrozen(useSession.getState().recap)).toBe(true)
     expect(useSession.getState().gatedRates).toEqual([])
     expect(useSession.getState().sample).toBeUndefined()
@@ -88,8 +88,8 @@ describe('session state', () => {
 
   it('creates a no-data recap without inventing a rate', () => {
     useSession.setState({ source: 'simulation', startedAt: Date.now() - 1_000, gatedRates: [] })
-    useSession.getState().finish()
-    expect(useSession.getState().recap).toMatchObject({ sampleCount: 0, averageBreathingRate: undefined, source: 'simulation', guidedPaceCompleted: false })
+    useSession.getState().finish({ receipt: { kind: 'insufficient', count: 0, beforeCount: 0, afterCount: 0 } })
+    expect(useSession.getState().recap).toMatchObject({ sampleCount: 0, receiptKind: 'insufficient', source: 'simulation', guidedPaceCompleted: false })
   })
 
   it('clears raw data and does not create a recap after a stop failure', () => {
@@ -100,7 +100,7 @@ describe('session state', () => {
 
   it('Done/reset clears the recap summary', () => {
     useSession.setState({ startedAt: Date.now(), gatedRates: [12] })
-    useSession.getState().finish()
+    useSession.getState().finish({ receipt: { kind: 'insufficient', count: 1, beforeCount: 0, afterCount: 0 } })
     useSession.getState().reset()
     expect(useSession.getState()).toMatchObject({ phase: 'ready', recap: undefined, gatedRates: [] })
   })

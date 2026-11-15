@@ -1,75 +1,61 @@
-import { describe, expect, it, vi } from 'vitest'
+// @vitest-environment jsdom
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { exportReceiptPng, receiptFilename, toExportableReceipt } from './exportReceipt'
 
-type PlannedReceipt = Readonly<{
-  source: 'smartspectra' | 'simulation'
-  before?: number
-  after?: number
-  change?: number
-  beforeCount: number
-  afterCount: number
-  receiptSufficient: boolean
-  pacerInterrupted: boolean
-}>
-
-type PlannedExportModule = Readonly<{
-  toExportableReceipt(recap: PlannedReceipt): unknown
-  exportReceiptPng(receipt: unknown): Promise<void>
-}>
-
-async function plannedExporter(): Promise<PlannedExportModule> {
-  // @ts-expect-error Task 3 production exporter intentionally does not exist yet.
-  return import('./exportReceipt') as Promise<PlannedExportModule>
+const validReal = {
+  source: 'smartspectra' as const, receiptKind: 'full' as const,
+  before: 12, after: 9, change: -3, baselineAcceptedCount: 2, guidedAcceptedCount: 2,
+  sampleCount: 4, receiptSufficient: true, pacerInterrupted: false
 }
 
-const validReal: PlannedReceipt = {
-  source: 'smartspectra', before: 12, after: 9, change: -3,
-  beforeCount: 2, afterCount: 2, receiptSufficient: true, pacerInterrupted: false
-}
+const context = { fillStyle: '', strokeStyle: '', font: '', fillRect: vi.fn(), beginPath: vi.fn(), roundRect: vi.fn(), fill: vi.fn(), fillText: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn() }
 
-describe.skip('Task 3 local-only PNG export contract (pending implementation)', () => {
-  it('allows a valid real receipt to be exported', async () => {
-    const exporter = await plannedExporter()
-    expect(exporter.toExportableReceipt(validReal)).toBeDefined()
+beforeEach(() => {
+  vi.restoreAllMocks()
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context as unknown as CanvasRenderingContext2D)
+  vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((callback) => callback(new Blob(['png'], { type: 'image/png' })))
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:task3-receipt') })
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() })
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+})
+
+describe('Task 3 local-only PNG export contract', () => {
+  it('allows full real and partial receipts to be exported', () => {
+    expect(toExportableReceipt(validReal)).toBeDefined()
+    expect(toExportableReceipt({ ...validReal, receiptKind: 'partial', receiptSufficient: false, before: undefined, after: undefined, change: undefined, median: 11, minimum: 9, maximum: 13, sampleCount: 3 })).toBeDefined()
   })
 
   it.each([
-    ['insufficient', { ...validReal, after: undefined, change: undefined, afterCount: 1, receiptSufficient: false }],
+    ['insufficient', { ...validReal, receiptKind: 'insufficient' as const, after: undefined, change: undefined, guidedAcceptedCount: 1, receiptSufficient: false }],
     ['interrupted', { ...validReal, pacerInterrupted: true }]
-  ])('rejects an %s receipt', async (_case, recap) => {
-    const exporter = await plannedExporter()
-    expect(exporter.toExportableReceipt(recap)).toBeUndefined()
+  ])('rejects an %s receipt', (_case, recap) => expect(toExportableReceipt(recap)).toBeUndefined())
+
+  it.each(['before', 'after', 'change'] as const)('rejects non-finite %s values', (field) => {
+    expect(toExportableReceipt({ ...validReal, [field]: Number.NaN })).toBeUndefined()
   })
 
-  it.each(['before', 'after', 'change'] as const)('rejects non-finite %s values', async (field) => {
-    const exporter = await plannedExporter()
-    expect(exporter.toExportableReceipt({ ...validReal, [field]: Number.NaN })).toBeUndefined()
-  })
-
-  it('limits the export model to approved aggregate information', async () => {
-    const exporter = await plannedExporter()
-    const model = exporter.toExportableReceipt(validReal) as Record<string, unknown>
-    expect(Object.keys(model).sort()).toEqual([
-      'after', 'afterCount', 'before', 'beforeCount', 'change', 'disclosure', 'source'
-    ])
+  it('limits the export model to approved aggregate information', () => {
+    const model = toExportableReceipt(validReal) as Record<string, unknown>
+    expect(Object.keys(model).sort()).toEqual(['after', 'afterCount', 'before', 'beforeCount', 'change', 'disclosure', 'source'])
     expect(JSON.stringify(model)).not.toMatch(/readings|camera|api.?key|run.?id|session.?id|frame/i)
   })
 
+  it('uses approved real and simulation filenames and disclosure', () => {
+    const at = new Date(2026, 10, 15, 9, 7)
+    expect(receiptFilename('smartspectra', at)).toBe('reset-receipt-2026-11-15-0907.png')
+    expect(receiptFilename('simulation', at)).toBe('reset-receipt-SIMULATION-2026-11-15-0907.png')
+    expect(toExportableReceipt({ ...validReal, source: 'simulation' })?.disclosure).toBe('SIMULATION, NOT REAL')
+  })
+
   it('revokes its temporary object URL after download', async () => {
-    const exporter = await plannedExporter()
-    const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:task3-receipt')
-    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
-    await exporter.exportReceiptPng(exporter.toExportableReceipt(validReal))
-    expect(createObjectURL).toHaveBeenCalledOnce()
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:task3-receipt')
+    await exportReceiptPng(toExportableReceipt(validReal))
+    expect(URL.createObjectURL).toHaveBeenCalledOnce()
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:task3-receipt')
   })
 
   it('rejects safely when PNG generation fails', async () => {
-    const exporter = await plannedExporter()
-    vi.spyOn(URL, 'createObjectURL').mockImplementation(() => { throw new Error('object URL unavailable') })
-    await expect(exporter.exportReceiptPng(exporter.toExportableReceipt(validReal))).rejects.toThrow('object URL unavailable')
-  })
-
-  it.skip('defines whether a valid simulation receipt can export', () => {
-    // Pending Claude decision: disable simulation export or require an unmistakable synthetic watermark.
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((callback) => callback(null))
+    await expect(exportReceiptPng(toExportableReceipt(validReal))).rejects.toThrow('PNG export failed.')
+    expect(URL.createObjectURL).not.toHaveBeenCalled()
   })
 })

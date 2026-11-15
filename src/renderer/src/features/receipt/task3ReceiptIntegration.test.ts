@@ -77,7 +77,13 @@ describe('Task 3 receipt integration prerequisites', () => {
     expect(useSession.getState().recap).not.toHaveProperty('change')
   })
 
-  it.skip('renders Before, After, signed change, counts, reliability, and disclosure only for an eligible recap', () => {
-    // Pending production wiring: finalizeSuccessfulSession must retain immutable calculated aggregates for the recap UI.
+  it('retains only the eligible immutable aggregates needed by the receipt UI', () => {
+    useSession.setState({ uniqueRateSampleCount: 5, acceptedRateSampleCount: 4, gatedRates: [10, 14, 8, 10] })
+    sessionRecorder.record({ timestampMs: 1, quality: { kind: 'ok' } }, 10, 'baseline')
+    sessionRecorder.record({ timestampMs: 2, quality: { kind: 'ok' } }, 14, 'baseline')
+    sessionRecorder.record({ timestampMs: 3, quality: { kind: 'ok' } }, 8, 'guided')
+    sessionRecorder.record({ timestampMs: 4, quality: { kind: 'ok' } }, 10, 'guided')
+    finalizeSuccessfulSession()
+    expect(useSession.getState().recap).toMatchObject({ receiptKind: 'full', before: 12, after: 9, change: -3, baselineAcceptedCount: 2, guidedAcceptedCount: 2, acceptedRateSampleCount: 4, uniqueRateSampleCount: 5 })
   })
 })
