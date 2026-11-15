@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 // @ts-expect-error The published preload is JavaScript-only.
 import '../../node_modules/@smartspectra/node-sdk/js/preload/index.js'
 import type { BeginLiveTestSessionRequest, EndLiveTestSessionRequest, LiveTestConfig, LiveTestCounters, LiveTestEventPayload, LiveTestSessionSummary } from '../shared/liveTest'
+import type { ForcedSessionStopReason } from '../main/sessionSafety'
 
 contextBridge.exposeInMainWorld('breathebreak', {
   getRuntimeInfo: (): Promise<{ platform: string; version: string }> => ipcRenderer.invoke('app:get-runtime-info'),
@@ -11,5 +12,11 @@ contextBridge.exposeInMainWorld('breathebreak', {
   endLiveTestSession: (request: EndLiveTestSessionRequest): Promise<LiveTestSessionSummary | undefined> => ipcRenderer.invoke('app:end-live-test-session', request),
   copyLiveTestRunReport: (): Promise<boolean> => ipcRenderer.invoke('app:copy-live-test-run-report'),
   updateLiveTestCounters: (counters: LiveTestCounters): void => ipcRenderer.send('app:update-live-test-counters', counters),
-  recordLiveTestEvent: (event: LiveTestEventPayload): void => ipcRenderer.send('app:record-live-test-event', event)
+  recordLiveTestEvent: (event: LiveTestEventPayload): void => ipcRenderer.send('app:record-live-test-event', event),
+  setSessionActive: (active: boolean): void => ipcRenderer.send('app:set-session-active', active),
+  onForcedSessionStop: (listener: (reason: ForcedSessionStopReason) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, reason: ForcedSessionStopReason): void => listener(reason)
+    ipcRenderer.on('app:forced-session-stop', handler)
+    return () => ipcRenderer.removeListener('app:forced-session-stop', handler)
+  }
 })
