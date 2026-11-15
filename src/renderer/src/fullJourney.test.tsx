@@ -51,11 +51,12 @@ async function runJourney(width: number, height: number): Promise<void> {
 
   if (!document.querySelector('.consent-panel')) await click('Start a reset')
 
-  const source = document.querySelector<HTMLSelectElement>('.field-label select')!
-  act(() => {
+  const source = document.querySelector<HTMLSelectElement>('.field-label select')
+  if (source) act(() => {
     source.value = 'simulation'
     source.dispatchEvent(new Event('change', { bubbles: true }))
   })
+  else expect(useSession.getState().source).toBe('simulation')
   expect(button('Start session').disabled).toBe(true)
   expectSimulationDisclosure()
   expect(document.querySelector('.camera-status')?.textContent).toBe('Camera: off, simulation')

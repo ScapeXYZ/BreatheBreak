@@ -1,4 +1,18 @@
 import type { TracePoint } from '../features/sessions/recorder'
+import { GardenCanvas } from './GardenCanvas'
+
+export function WelcomeInstrument():JSX.Element {
+  const circumference=2*Math.PI*176
+  return <div className="welcome-instrument">
+    <div className="instrument-glow" aria-hidden="true"/>
+    <div className="instrument-ring" role="img" aria-label="Preview breathing ring, one minute">
+      <svg viewBox="0 0 380 380" aria-hidden="true"><defs><linearGradient id="heroRingGradient" x1="0" y1="1" x2="1" y2="0"><stop stopColor="#3e8799"/><stop offset=".56" stopColor="#79e7df"/><stop offset="1" stopColor="#d4fffb"/></linearGradient><filter id="ringLeadGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle className="instrument-track" cx="190" cy="190" r="176"/><circle className="instrument-progress" cx="190" cy="190" r="176" strokeDasharray={circumference} strokeDashoffset={circumference*.18}/><circle className="instrument-lead" cx="338" cy="95" r="5"/></svg>
+      <div className="instrument-flower"><GardenCanvas readChest={()=>undefined} active preview quality="low"/></div>
+      <div className="instrument-readout"><span>Natural breathing</span><strong>1:00</strong><small>Preview</small></div>
+    </div>
+    <div className="welcome-waveform" aria-label="No signal yet"><div className="waveform-heading"><span>Breathing signal</span><strong>No signal yet</strong></div><svg viewBox="0 0 660 54" preserveAspectRatio="none" aria-hidden="true"><path d="M0 27 C90 27 120 27 170 27 S260 27 330 27 S470 27 540 27 S620 27 660 27"/></svg></div>
+  </div>
+}
 
 export function SessionRing({elapsedSeconds,totalSeconds=180,guided}:{elapsedSeconds:number;totalSeconds?:number;guided:boolean}):JSX.Element {
   const progress=Math.min(1,Math.max(0,elapsedSeconds/totalSeconds));const circumference=2*Math.PI*46
