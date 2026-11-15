@@ -1,0 +1,206 @@
+{
+  "methodology": "Offline fixture bundle with SmartSpectra replaced by a throwing safe stub; all Electron camera permissions denied.",
+  "captures": [
+    {
+      "fixture": "onboarding",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "filename": "onboarding-1280x720.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "welcome",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "filename": "welcome-1280x720.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "live",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "filename": "live-1280x720.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "full",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "filename": "full-1280x720.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "partial",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "filename": "partial-1280x720.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "insufficient",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "filename": "insufficient-1280x720.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "interrupted",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "filename": "interrupted-1280x720.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "onboarding",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "filename": "onboarding-1280x800.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "welcome",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "filename": "welcome-1280x800.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "live",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "filename": "live-1280x800.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "full",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "filename": "full-1280x800.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "partial",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "filename": "partial-1280x800.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "insufficient",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "filename": "insufficient-1280x800.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "interrupted",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "filename": "interrupted-1280x800.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "onboarding",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "filename": "onboarding-1440x900.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "welcome",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "filename": "welcome-1440x900.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "live",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "filename": "live-1440x900.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "full",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "filename": "full-1440x900.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "partial",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "filename": "partial-1440x900.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "insufficient",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "filename": "insufficient-1440x900.png",
+      "horizontalOverflow": false
+    },
+    {
+      "fixture": "interrupted",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "filename": "interrupted-1440x900.png",
+      "horizontalOverflow": false
+    }
+  ],
+  "exports": [
+    {
+      "fixture": "full-real",
+      "filename": "reset-receipt-REAL-example.png",
+      "originalFilename": "reset-receipt-2026-11-15-0929.png"
+    },
+    {
+      "fixture": "partial",
+      "filename": "reset-receipt-SIMULATION-example.png",
+      "originalFilename": "reset-receipt-SIMULATION-2026-11-15-0929.png"
+    }
+  ]
+}
