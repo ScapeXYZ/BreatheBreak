@@ -7,3 +7,10 @@ export class SessionRecorder { readonly chestTrace=new RingBuffer<TracePoint>(12
  recordGuidedCompletion(value:GuidedCompletion):void{this.guidedCompletions.push(value)} discardGuidedReadingsBetween(startMs:number,endMs:number):void{this.breathingRates.removeWhere(reading=>reading.phase==='guided'&&reading.receivedAtMs>=startMs&&reading.receivedAtMs<=endMs);this.guidedCompletions.clear()} latestChest():number|undefined{return this.currentChest} clear():void{this.chestTrace.clear();this.breathingRates.clear();this.qualityIntervals.clear();this.guidedCompletions.clear();this.lastTraceAt=-Infinity;this.currentChest=undefined} get size():number{return this.chestTrace.size+this.breathingRates.size+this.qualityIntervals.size+this.guidedCompletions.size} }
 export const sessionRecorder=new SessionRecorder()
 export const clearSessionData=():void=>sessionRecorder.clear()
+
+export function decimateTrace(points: readonly TracePoint[], maximumPoints = 64): readonly number[] {
+ if (maximumPoints < 2) throw new RangeError('maximumPoints')
+ if (points.length <= maximumPoints) return Object.freeze(points.map((point) => point.value))
+ const step=(points.length-1)/(maximumPoints-1)
+ return Object.freeze(Array.from({length:maximumPoints},(_,index)=>points[Math.round(index*step)].value))
+}
