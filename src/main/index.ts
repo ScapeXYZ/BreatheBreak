@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import { EMPTY_LIVE_TEST_COUNTERS, formatLiveTestRunReport, isGoodSignalWindow, isLiveTestEnabled, LIVE_TEST_DIAGNOSTIC_INTERVAL_MS, LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH, liveTestAcceptedReadingRecord, liveTestDiagnosticRecord, liveTestEventRecord, liveTestLaunchRecord, LiveTestSessionEvidence, type LiveTestCounters, type LiveTestSessionSummary, validBeginLiveTestSessionRequest, validEndLiveTestSessionRequest, validLiveTestCounters, validLiveTestEvent } from '../shared/liveTest'
 import { SessionSafetyController, type ForcedSessionStopReason } from './sessionSafety'
 import { shouldBindSmartSpectra, simulationOnlyForRuntime } from '../shared/simulationOnly'
+import { cameraPermissionAllowed } from './permissionPolicy'
 
 declare const __BREATHEBREAK_SIMULATION_ONLY__: boolean
 const simulationOnly=simulationOnlyForRuntime(app.isPackaged,__BREATHEBREAK_SIMULATION_ONLY__)
@@ -20,6 +21,7 @@ let diagnosticTimer: ReturnType<typeof setInterval> | undefined
 let activeEvidence: LiveTestSessionEvidence | undefined
 let latestSummary: LiveTestSessionSummary | undefined
 let activeSessionContents: WebContents | undefined
+let applicationContents: WebContents | undefined
 const safety = new SessionSafetyController((callback,milliseconds)=>setTimeout(callback,milliseconds),(timer)=>clearTimeout(timer as ReturnType<typeof setTimeout>),(reason:ForcedSessionStopReason)=>{if(activeSessionContents&&!activeSessionContents.isDestroyed())activeSessionContents.send('app:forced-session-stop',reason)})
 const appendDiagnostic = (record: object): void => appendFileSync(diagnosticPath, JSON.stringify(record) + '\n', { encoding: 'utf8' })
 
@@ -54,6 +56,7 @@ async function createWindow(): Promise<void> {
       webSecurity: true
     }
   })
+  applicationContents = window.webContents
   if(shouldBindSmartSpectra(simulationOnly)){const{bindSmartSpectraIpc}=await import('@smartspectra/node-sdk/main');bindSmartSpectraIpc(window,{logger:()=>{/* Avoid forwarding SDK diagnostics. */}})}
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://')) void shell.openExternal(url)
@@ -65,7 +68,22 @@ async function createWindow(): Promise<void> {
 }
 
 app.whenReady().then(async() => {
-  if(simulationOnly){session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));session.defaultSession.setPermissionCheckHandler(()=>false)}
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    callback(cameraPermissionAllowed({
+      permission,
+      mediaTypes: details.mediaTypes ?? [],
+      requestingUrl: details.requestingUrl,
+      applicationUrl: applicationContents?.getURL() ?? '',
+      sameWebContents: webContents === applicationContents
+    }))
+  })
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => cameraPermissionAllowed({
+    permission,
+    mediaTypes: details.mediaType ? [details.mediaType] : [],
+    requestingUrl: requestingOrigin,
+    applicationUrl: applicationContents?.getURL() ?? '',
+    sameWebContents: webContents === applicationContents
+  }))
   powerMonitor.on('suspend',()=>safety.suspend())
   powerMonitor.on('lock-screen',()=>safety.lockScreen())
   ipcMain.handle('app:get-runtime-info', () => ({ platform: process.platform, version: app.getVersion() }))
