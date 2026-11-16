@@ -1,6 +1,6 @@
 import { MetricType, SmartSpectraErrorCode, SmartSpectraSDK, ValidationCode } from '@smartspectra/node-sdk/renderer'
 import { decodeMetrics } from '@smartspectra/node-sdk/messages'
-import { stopMediaStream, videoCameras } from './cameras'
+import { negotiatedCameraSettings, stopMediaStream, videoCameras } from './cameras'
 import { UniqueRateGateCounter } from './gating'
 import { ReconnectionPolicy, wait } from './reconnection'
 import type { CameraDevice, SignalListener, SignalQuality, SignalSource, SourceStatus } from './types'
@@ -91,6 +91,7 @@ export class SmartSpectraSignalSource implements SignalSource {
     if (!camera) throw new Error('The selected camera is no longer available. Choose another camera.')
     this.quality = { kind: 'warming', message: 'Preparing the signal' }
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { deviceId: { exact: cameraId }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } })
+    if (this.liveTestEnabled) window.breathebreak.recordLiveTestEvent({ event: 'camera-settings', ...negotiatedCameraSettings(this.stream) })
     const frameMonitor = new CameraFrameMonitor(this.stream)
     this.frameMonitor = frameMonitor
     const deliveredFps = await frameMonitor.measure()
