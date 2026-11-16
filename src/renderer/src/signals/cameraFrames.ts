@@ -1,5 +1,6 @@
 export const CAMERA_FPS_PREFLIGHT_MS = 3_000
 export const MINIMUM_PREFLIGHT_FPS = 24
+export const CAMERA_STALL_TIMEOUT_MS = 8_000
 
 type FrameVideo = Pick<HTMLVideoElement, 'muted' | 'playsInline' | 'srcObject' | 'play' | 'pause' | 'requestVideoFrameCallback' | 'cancelVideoFrameCallback'>
 
@@ -19,12 +20,15 @@ export function lowFrameRateMessage(fps: number): string {
 export class CameraFrameMonitor {
   private readonly frameTimes: number[] = []
   private callbackId?: number
+  private stallTimer?: ReturnType<typeof setTimeout>
+  private stallCallback?: () => void
   private stopped = false
 
   constructor(
     private readonly stream: MediaStream,
     private readonly video: FrameVideo = document.createElement('video'),
-    private readonly schedule: (callback: () => void, milliseconds: number) => ReturnType<typeof setTimeout> = setTimeout
+    private readonly schedule: (callback: () => void, milliseconds: number) => ReturnType<typeof setTimeout> = setTimeout,
+    private readonly cancel: (timer: ReturnType<typeof setTimeout>) => void = clearTimeout
   ) {}
 
   async measure(durationMs = CAMERA_FPS_PREFLIGHT_MS): Promise<number> {
@@ -42,15 +46,33 @@ export class CameraFrameMonitor {
     this.stopped = true
     if (this.callbackId !== undefined) this.video.cancelVideoFrameCallback(this.callbackId)
     this.callbackId = undefined
+    if (this.stallTimer !== undefined) this.cancel(this.stallTimer)
+    this.stallTimer = undefined
+    this.stallCallback = undefined
     this.video.pause()
     this.video.srcObject = null
+  }
+
+  watchForStall(callback: () => void): void {
+    this.stallCallback = callback
+    this.armStallTimer()
   }
 
   private requestFrame(): void {
     if (this.stopped) return
     this.callbackId = this.video.requestVideoFrameCallback((now) => {
       this.frameTimes.push(now)
+      this.armStallTimer()
       this.requestFrame()
     })
+  }
+
+  private armStallTimer(): void {
+    if (!this.stallCallback || this.stopped) return
+    if (this.stallTimer !== undefined) this.cancel(this.stallTimer)
+    this.stallTimer = this.schedule(() => {
+      this.stallTimer = undefined
+      this.stallCallback?.()
+    }, CAMERA_STALL_TIMEOUT_MS)
   }
 }

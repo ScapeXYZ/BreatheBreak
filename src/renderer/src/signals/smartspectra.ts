@@ -112,7 +112,18 @@ export class SmartSpectraSignalSource implements SignalSource {
       if (sent) this.sentFrames += 1
     })
     sdk.on('error', (code, message, retryable) => { void this.handleError(code, message, retryable) })
-    try { await sdk.start() } catch (error) { this.release(); throw error }
+    try {
+      await sdk.start()
+      frameMonitor.watchForStall(() => { void this.handleCameraStall() })
+    } catch (error) { this.release(); throw error }
+  }
+
+  private async handleCameraStall(): Promise<void> {
+    if (this.stopping) return
+    if (this.liveTestEnabled) window.breathebreak.recordLiveTestEvent({ event: 'camera-stalled' })
+    const onFatalError = this.options?.onFatalError
+    await this.stop()
+    onFatalError?.('The camera stopped sending video. Session stopped.')
   }
 
   private receiveMetrics(buffer: Uint8Array, timestampUs: number): void {
