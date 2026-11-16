@@ -75,6 +75,8 @@ Do not start a live session unless camera use and Presage credit consumption are
 
 Before SmartSpectra starts, real mode measures delivered camera frames for about three seconds. A median result below 24 FPS is rejected before SDK initialization; the UI explains that the SDK needs at least 25 FPS and releases the camera tracks. A passing preflight is an admission check, not proof that SDK processing will sustain that rate.
 
+Real mode requests an ideal 640×480 resolution at 30 FPS. The Presage SDK team directly confirmed that 640×480 is supported, that 1280×720 is a recommendation rather than a requirement, and that the lower resolution should not affect breathing-rate measurement. The browser and camera may negotiate different actual settings; authorized live-test diagnostics record those negotiated dimensions and frame rate.
+
 SmartSpectra error 14 is `kSustainedLowFrameRate`. Reset Receipt treats it as terminal: it does not retry automatically, stops the session, releases the camera, and asks the user to try a different camera or connection, close other applications, and start a new session. Restart is always user initiated.
 
 In repeated Camo-over-Wi-Fi diagnostics, the camera passed the preflight at 30 FPS while subsequent SDK frame delivery was approximately 14–15 FPS and ended with error 14. These records show the mismatch but do not establish Wi-Fi as its cause. The app now records the camera track's negotiated width, height, and frame rate in sanitized live-test diagnostics; that new record has not yet been verified in a hardware run.

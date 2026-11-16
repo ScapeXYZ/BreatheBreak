@@ -12,6 +12,10 @@ export function resolveSelectedCamera(cameras: CameraDevice[], rememberedId?: st
 
 export function stopMediaStream(stream?: MediaStream): number { const tracks=stream?.getTracks()??[];tracks.forEach((track)=>track.stop());return tracks.length }
 
+export function realCameraStreamConstraints(cameraId: string): MediaStreamConstraints {
+  return { audio: false, video: { deviceId: { exact: cameraId }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } } }
+}
+
 export type NegotiatedCameraSettings = Readonly<{ width: number | null; height: number | null; frameRate: number | null }>
 
 export function negotiatedCameraSettings(stream: MediaStream): NegotiatedCameraSettings {

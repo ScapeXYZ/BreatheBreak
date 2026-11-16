@@ -19,7 +19,7 @@ Source-only simulation mode is resolved before renderer initialization. In that 
 `src/renderer/src/signals/smartspectra.ts` is the real signal source. It:
 
 1. enumerates video-input devices for explicit selection;
-2. acquires the exact selected camera with `getUserMedia` only from the explicit Start path, requesting ideal 1280×720 at 30 FPS;
+2. acquires the exact selected camera with `getUserMedia` only from the explicit Start path, requesting the Presage-approved ideal 640×480 at 30 FPS;
 3. records only the negotiated track width, height, and frame rate when authorized live-test diagnostics are enabled;
 4. measures delivered frames for about three seconds before SDK construction and rejects a median below 24 FPS;
 5. detaches the hidden preflight video and cancels its frame-callback loop after success while preserving the original stream and camera track;
