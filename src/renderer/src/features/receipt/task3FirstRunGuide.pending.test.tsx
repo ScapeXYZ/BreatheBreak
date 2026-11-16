@@ -111,6 +111,15 @@ describe('Task 3 first-run framing guide contract', () => {
     expect(useSession.getState().consented).toBe(false)
   })
 
+  it('resets the consent checkbox every time the modal opens', () => {
+    const skip = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Skip guide')!
+    act(() => skip.click())
+    act(() => useSession.getState().setConsent(true))
+    const opener = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Start a reset')!
+    act(() => opener.click())
+    expect(useSession.getState().consented).toBe(false)
+    expect(document.querySelector<HTMLInputElement>('.consent-check input')?.checked).toBe(false)
+  })
   it('provides explicit Cancel without granting consent', () => {
     const skip = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Skip guide')!
     act(() => skip.click())

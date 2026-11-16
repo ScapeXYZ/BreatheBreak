@@ -410,3 +410,18 @@ html[data-simulation-only='true'] .simulation-disclosure::after { content: 'SIMU
 @media(max-width:40rem){.reference-how ol{grid-template-columns:1fr}.welcome-bottom-cards{grid-template-columns:1fr}.instrument-readout strong{font-size:3.8rem}.welcome-heading{text-align:center}.welcome-heading p{margin-inline:auto}}
 @media(max-height:760px) and (min-width:58rem){html,body,#root,.app{height:auto;min-height:100%;overflow-y:auto}.app-stage{height:auto;min-height:calc(100dvh - 94px);overflow:visible}.instrument-ring{width:320px;height:320px}.instrument-flower{inset:32px}.instrument-readout strong{font-size:4rem}.welcome-waveform{margin-top:-12px}.reference-panel{min-height:500px}.reference-how,.welcome-session{padding:22px}.reference-how li{min-height:72px}.welcome-bottom-cards{display:grid}.session-screen{height:calc(100dvh - 128px);min-height:0}}
 @media(prefers-reduced-motion:reduce){.instrument-progress{transition:none}.instrument-ring>svg{filter:none}}
+
+/* Final unified session instrument */
+.instrument-signal-label { position:absolute; z-index:4; top:46px; left:50%; transform:translateX(-50%); padding:4px 9px; border:1px solid rgba(126,226,217,.22); border-radius:999px; background:rgba(4,8,15,.68); color:#b7d6d6; font-size:.64rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
+.instrument-readout b { margin-top:10px; color:#d8eeee; font-size:.78rem; font-weight:600; letter-spacing:.02em; }
+.instrument-readout--welcome strong { max-width:220px; margin-top:8px; font-size:2.1rem; line-height:1.05; letter-spacing:-.035em; }
+.guided-inline-card { margin-top:18px; padding:18px; border:1px solid rgba(120,224,214,.22); border-radius:18px; background:linear-gradient(145deg,rgba(21,55,65,.72),rgba(8,22,31,.74)); }
+.guided-inline-card h3 { margin:3px 0 8px; font-size:1.25rem; }
+.guided-inline-card > p { margin:0 0 12px; color:#b7c9ce; line-height:1.45; }
+.guided-inline-card .button { width:100%; }
+.guided-inline-status { color:#d8eeee !important; font-weight:600; }
+.pace-settings { margin:10px 0 14px; border-top:1px solid rgba(139,205,204,.16); border-bottom:1px solid rgba(139,205,204,.16); }
+.pace-settings summary { padding:11px 2px; color:#bcd3d6; cursor:pointer; font-weight:600; }
+.pace-settings .pacer-settings { padding:0 0 13px; }
+.pace-settings .pacer-settings p { grid-column:1/-1; margin:0; color:#94aeb4; font-size:.75rem; }
+@media(max-height:760px) and (min-width:58rem){.guided-inline-card{padding:14px}.pace-settings{margin-block:7px}.guided-inline-card h3{font-size:1.1rem}}
