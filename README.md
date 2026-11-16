@@ -15,6 +15,7 @@ Camera-based breathing experiences can blur measured signals, guided instruction
 3. The baseline completes after three accepted readings or unlocks at 45 seconds.
 4. The user may start the 45-second guided pacer; it never starts automatically.
 5. Stop releases the source, clears raw session buffers after creating the recap, and shows a full, partial, insufficient, or interrupted receipt.
+6. Full and partial receipts can be exported as aggregate-only PNG files. Insufficient and interrupted receipts cannot be exported.
 
 Every session has a visible three-minute maximum. Suspend or lock requests an immediate stop. The first-run guide, four receipt states, aggregate-only PNG export, reliability counts, and insufficient-data handling are implemented.
 
@@ -24,14 +25,23 @@ The Electron main process binds the official SDK IPC bridge in `src/main/index.t
 
 The app requests chest breathing, breathing rate, and optional abdomen breathing. It does not request LLM Insights. See [SDK integration](docs/SDK_INTEGRATION.md) for the complete wiring and file map.
 
-## Run in simulation
+## Prerequisites and installation
 
-Simulation-only mode is for interface review and offline development. It needs no camera or API key, uses synthetic data, and is persistently labelled **SIMULATION, NOT REAL**.
+Reset Receipt is developed and verified on Windows. The reproducible toolchain used for this revision is Node.js 24.14.1 and npm 11.18.0. `package.json` and `package-lock.json` do not declare a broader Node.js `engines` range, so other versions are not claimed as verified.
 
 ```powershell
 git clone https://github.com/ScapeXYZ/BreatheBreak.git
 cd BreatheBreak
 npm install
+```
+
+Real mode additionally needs an OS-visible camera, a SmartSpectra account, and your own API key. Simulation needs none of those.
+
+## Run in simulation
+
+Simulation-only mode is for interface review and offline development. It needs no camera or API key, uses synthetic data, and is persistently labelled **SIMULATION, NOT REAL**.
+
+```powershell
 npm run dev:sim
 ```
 
@@ -43,17 +53,39 @@ Use your own SmartSpectra key and never commit it:
 
 ```powershell
 Copy-Item .env.example .env
-# Edit .env and set VITE_SMARTSPECTRA_API_KEY to your own key.
+# Edit .env and replace the empty value copied from .env.example:
+# VITE_SMARTSPECTRA_API_KEY=your-own-key
 npm run dev
 ```
 
-Real mode requires an OS-visible camera and an authorized SmartSpectra account. The user must select a camera, check consent, and press **Start session**. Do not start a live session unless camera use and Presage credit consumption are authorized. There is no installer; this repository currently runs from source.
+The required variable name is exactly `VITE_SMARTSPECTRA_API_KEY`. `.env` files are gitignored; `.env.example` contains only the empty template. Never put a real key in source, screenshots, diagnostics, or a commit.
+
+For a real session:
+
+1. Select the intended camera, read the disclosure, and check the explicit consent box.
+2. Press **Start session**. Camera acquisition begins only from this action.
+3. Breathe naturally until the baseline reaches three accepted readings or the 45-second cap.
+4. Press **Start guided minute** manually, then follow the 45-second guide. It never starts automatically.
+5. Press **Stop session** when the guide is complete. Stop releases the camera and opens the receipt.
+6. If the receipt is full or partial, use **Export PNG**. Insufficient and interrupted receipts intentionally have no export action.
+
+Do not start a live session unless camera use and Presage credit consumption are authorized. There is no installer; this repository currently runs from source.
+
+### Camera readiness and low-frame-rate handling
+
+Before SmartSpectra starts, real mode measures delivered camera frames for about three seconds. A median result below 24 FPS is rejected before SDK initialization; the UI explains that the SDK needs at least 25 FPS and releases the camera tracks. A passing preflight is an admission check, not proof that SDK processing will sustain that rate.
+
+SmartSpectra error 14 is `kSustainedLowFrameRate`. Reset Receipt treats it as terminal: it does not retry automatically, stops the session, releases the camera, and asks the user to try a different camera or connection, close other applications, and start a new session. Restart is always user initiated.
+
+In repeated Camo-over-Wi-Fi diagnostics, the camera passed the preflight at 30 FPS while subsequent SDK frame delivery was approximately 14–15 FPS and ended with error 14. These records show the mismatch but do not establish Wi-Fi as its cause. The app now records the camera track's negotiated width, height, and frame rate in sanitized live-test diagnostics; that new record has not yet been verified in a hardware run.
 
 ## Consent and data handling
 
 The application does not implement video or frame recording. Raw samples are held in bounded memory buffers during a session and cleared after the recap summary is created. A guide-seen flag and selected camera ID are stored in Electron `localStorage`. Sanitized diagnostics are written only in explicitly authorized live-test mode and are gitignored.
 
 SmartSpectra still uses authenticated network services even though this app sets SDK telemetry off. The renderer bundle also contains the configured API key, so a packaged desktop key would be extractable. Read [Privacy and data handling](docs/PRIVACY.md) before using or distributing the app.
+
+Electron permission checks and requests are denied except for video-only camera access from the application's own origin and web contents. The active-session watchdog is driven by SmartSpectra `frameSentThrough` events and stops and cleans up after eight seconds without an SDK frame. Content Security Policy hardening and comprehensive IPC sender validation are not claimed complete.
 
 ## Reading gate and receipt rules
 
@@ -67,26 +99,36 @@ The guided pace is not a physiological measurement. The app does not diagnose, r
 
 ## What is tested—and what is not
 
-Offline automated coverage includes SDK payload mapping, confidence/stability/range gating, timestamp deduplication, baseline and receipt calculations, pacer timing/interruption, session safety, aggregate export, onboarding, simulation isolation, and a fake real-source journey.
+The complete automated suite passes 145 of 145 tests on the documented Windows toolchain when run with one worker (`npm test -- --maxWorkers=1`). Coverage includes SDK payload mapping, confidence/stability/range gating, timestamp deduplication, baseline and receipt calculations, pacer timing/interruption, camera preflight and cleanup, permission policy, session safety, aggregate export, onboarding, simulation isolation, and a fake real-source journey. TypeScript typecheck and the production build also pass.
 
-R3 and R4 produced sanitized real-SDK telemetry on earlier builds. They do not verify the current merged build's receipt UI, three-minute stop, suspend/lock release, or interruption behavior. Those current-build behaviors require the separately authorized R5 hardware run. Simulation, fixtures, and fake sources are never presented as real evidence.
+Simulation, fixtures, and fake sources are never presented as real sensing evidence. No real run has produced a verified full Before/After receipt on the current build.
 
-### R5 offline evidence review
+### Real-session evidence boundary
 
-R5 run `47cf7492-16c6-4fa7-881b-2503999566b2` used the integrated webcam (`Integrated Webcam (0c45:6d16)`) instead of the planned Camo camera. It lasted 40.971 seconds, produced zero unique breathing-rate samples, reported no SDK errors, logged media tracks stopped, and recorded a 35 ms camera-release delay after Stop. The diagnostics contain cumulative delivered-frame counts but no FPS measurement, so no measured FPS is claimed. The zero-rate outcome is consistent with a session that did not satisfy one or more documented SDK measurement requirements, which include a minimum 25 FPS, but the records do not establish frame rate as the cause. Because the wrong camera was used and no breathing-rate samples were produced, R5 is invalid for the planned Camo Before/After validation.
+Private, gitignored sanitized diagnostics support the following limited claims:
+
+| Run | Verified evidence | Boundary |
+| --- | --- | --- |
+| R2 | A real Camo session started at `2026-11-14T02:10:48.623Z`, Stop was clicked at `02:12:04.654Z`, and media tracks stopped 34 ms later. | Earlier diagnostics did not carry the later self-identifying summary schema; this is lifecycle evidence, not a current-build receipt result. |
+| R3 | Real Camo session `6d47a40d-1a71-4062-b6e9-cf042affe72a` lasted 75.831 seconds, produced 11 unique rate samples and one accepted baseline reading, completed baseline by cap, never started the pacer, and released media. | No guided comparison or valid full receipt. |
+| R4 | Real Camo session `f415802a-61d1-4738-af9a-624a33fcb469` recorded accepted readings and a pacer interval, but its first pacer interval lasted about 13 minutes 24 seconds. | Earlier-build timing failure; it motivated later three-minute, suspend/lock, and interruption safeguards and is not valid receipt evidence. |
+| R5 | Run `47cf7492-16c6-4fa7-881b-2503999566b2` used the integrated webcam, lasted 40.971 seconds, produced zero unique rate samples, reported no SDK errors, logged media tracks stopped, and released 35 ms after Stop. | Wrong camera for the planned Camo validation; no measured FPS was recorded and the run is invalid for Before/After validation. |
+| R6 | Run `18431cfe-270c-4e15-8c93-1410888c30eb` used Camo, lasted 91.475 seconds, produced 20 unique rate samples and one accepted baseline reading, completed baseline by cap, never started the pacer, reported no SDK errors, and released media 34 ms after Stop. | No guided comparison or valid full receipt. |
+| Recent error-14 runs | Camo-over-Wi-Fi passed a recorded 30 FPS preflight, then SDK delivery fell to approximately 14–15 FPS and SmartSpectra emitted error 14; tracks were released. | Confirms sustained-low-frame-rate handling, not its root cause and not a successful receipt. Negotiated camera-settings diagnostics were added afterward and remain unverified on hardware. |
 
 ## Known limitations
 
 - No Windows installer or code-signed distributable is provided.
 - The renderer-embedded API key is not suitable as a long-term production secret.
-- Current-build real-hardware acceptance remains pending R5.
+- No successful full Before/After receipt has been verified with the real SDK on the current build.
+- A 30 FPS camera preflight did not prevent later sustained-low-frame-rate failures in the observed Camo-over-Wi-Fi runs; the cause remains unproven.
 - Presage-side network, telemetry, retention, and deletion behavior has not been independently verified by this project.
 - The optional abdomen signal is requested but is not required for the receipt.
 - This prototype is intended for adults; distribution, accessibility, licensing, and privacy review remain product-lead responsibilities.
 
 ## Challenge alignment
 
-The first Git commit is dated November 11, 2026, inside the November 4–22 challenge window. The repository integrates the real Presage SmartSpectra SDK and contains private, gitignored evidence of earlier real sessions. Submission readiness—including the demo, DEV post, public-repository check, entrant status, and judge instructions—is tracked in [SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md).
+The first Git commit is dated November 11, 2026, inside the November 4–22 challenge window. The repository integrates the real Presage SmartSpectra SDK and contains private, gitignored evidence of real sessions. Submission readiness—including the still-placeholder demo-video URL, DEV-post URL, and public-repository URL, plus entrant status and judge instructions—is tracked in [Submission checklist](docs/SUBMISSION_CHECKLIST.md).
 
 ## Project map and license
 
@@ -95,5 +137,13 @@ The first Git commit is dated November 11, 2026, inside the November 4–22 chal
 - `src/renderer/src/signals` — real and simulation sources, mapping, gating, camera cleanup.
 - `src/renderer/src/features` — onboarding, recorder, pacer, receipt, and PNG export.
 - `docs` — product, privacy, SDK, runbook, claims, and submission evidence.
+
+Detailed evidence and operating documents:
+
+- [SDK integration](docs/SDK_INTEGRATION.md)
+- [Privacy and data handling](docs/PRIVACY.md)
+- [Claim-to-evidence register](docs/CLAIMS.md)
+- [Live-test runbook](docs/R1-LIVE-TEST-RUNBOOK.md)
+- [Submission checklist](docs/SUBMISSION_CHECKLIST.md)
 
 Licensed under the [MIT License](LICENSE).

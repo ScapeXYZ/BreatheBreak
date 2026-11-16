@@ -5,7 +5,7 @@ Status reflects evidence available locally on 2026-11-15. `PASS` means the requi
 | Official requirement | Status | Evidence | Remaining work |
 | --- | --- | --- | --- |
 | SmartSpectra SDK integrated | PASS | `package.json`; `src/main/index.ts`; `src/preload/index.ts`; `src/renderer/src/signals/smartspectra.ts` | Keep the production credential private and follow the SDK's distribution terms. |
-| At least one live Presage signal | PASS | Private ignored `.diagnostics/r1-live-test.ndjson`: known real sessions R3 (`6d47a40d-1a71-4062-b6e9-cf042affe72a`) and R4 (`f415802a-61d1-4738-af9a-624a33fcb469`) contain nonzero rate-sample windows; `docs/CHECKLIST.md` documents their earlier-build scope. | R5 is still needed to verify the current merged build; do not publish private diagnostics. |
+| At least one live Presage signal | PASS | Private ignored `.diagnostics/r1-live-test.ndjson`: real sessions R3 (`6d47a40d-1a71-4062-b6e9-cf042affe72a`), R4 (`f415802a-61d1-4738-af9a-624a33fcb469`), and R6 (`18431cfe-270c-4e15-8c93-1410888c30eb`) contain nonzero rate-sample windows; `README.md` and `docs/CHECKLIST.md` document their limits. | No current-build real run produced a full Before/After receipt; do not publish private diagnostics. |
 | Public repository with setup instructions | PARTIAL | Git remote `backup` points to `https://github.com/ScapeXYZ/BreatheBreak.git`; setup and local credential instructions are in `README.md`. Public accessibility was not verified offline. | Confirm unauthenticated public access and that clean-clone setup succeeds. |
 | Demo video | FAIL | No demo-video artifact or link was found in the repository. | Record and publish an honest demo using authorized real evidence; clearly label any simulation footage. |
 | DEV post using the official template and `#presagechallenge` | UNKNOWN | No DEV-post draft or published URL was found locally. | Create the post from the official template, include `#presagechallenge`, and record its public URL. |
@@ -25,4 +25,3 @@ Status reflects evidence available locally on 2026-11-15. `PASS` means the requi
 - Individual-entry status is unverified.
 - Consent and Data Handling wording is incomplete for sharing and optional AI-service use.
 - Judge-facing test instructions need a concise submission-ready section.
-

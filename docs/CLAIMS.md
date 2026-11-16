@@ -33,7 +33,7 @@ This register covers the substantive claims in `README.md` and `docs/PRIVACY.md`
 | Partial receipt uses overall median/range/count, while fewer than two readings are insufficient. | `receipt.ts`; `ReceiptView.tsx`; receipt tests | Verified offline. |
 | Interrupted pacing invalidates comparison and export. | `receipt.ts`; `ReceiptView.tsx`; `exportReceipt.ts`; pacer/receipt tests | Verified offline. |
 | R3 and R4 were real-SDK sessions on earlier builds. | Private gitignored `.diagnostics/r1-live-test.ndjson`; `docs/CHECKLIST.md` | Verified from sanitized lifecycle/source records; not current-build evidence. |
-| Current-build real-hardware acceptance remains pending R5. | `docs/CHECKLIST.md`; absence of an approved current-build Run Report | Unverified/pending. |
+| Current-build real-hardware evidence exists, but it does not include a successful full Before/After receipt. | Private gitignored `.diagnostics/r1-live-test.ndjson`; `README.md`; `docs/CHECKLIST.md` | Verified boundary: R5/R6 and later error-14 runs exercised hardware paths; none produced a valid full receipt. |
 | The first commit was November 11, 2026. | Git commit `209c56e` | Verified from local Git history. |
 | Live-test diagnostics run only for the exact authorization sentinel and are gitignored. | `src/shared/liveTest.ts`; `src/main/index.ts`; `.gitignore`; `R1-LIVE-TEST-RUNBOOK.md` | Verified by source. |
 | Diagnostics contain allowlisted identity, timestamps, errors, counts, confidence bins, timing, CPU, camera label, and signal share. | `src/shared/liveTest.ts` exact record types/validators | Verified by source. |
@@ -60,10 +60,10 @@ This register covers the substantive claims in `README.md` and `docs/PRIVACY.md`
 
 ## Explicitly unverified
 
-- Current merged-build R5 behavior on real hardware.
+- A successful current-build real full Before/After receipt.
+- The new negotiated camera-settings diagnostic event on real hardware.
 - Complete SDK network traffic in a real session, including whether derived measurements leave the device when Insights are not requested.
 - Presage's actual storage, retention, deletion, correlation, security, and subprocessors beyond its published documentation.
 - File-system behavior across every crash, power loss, forced termination, or supported Windows configuration.
 - Public accessibility and clean-clone success of the configured GitHub repository.
 - Installer behavior, because no installer exists.
-

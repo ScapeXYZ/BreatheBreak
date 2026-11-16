@@ -19,13 +19,23 @@ Source-only simulation mode is resolved before renderer initialization. In that 
 `src/renderer/src/signals/smartspectra.ts` is the real signal source. It:
 
 1. enumerates video-input devices for explicit selection;
-2. acquires the exact selected camera with `getUserMedia` only from the explicit Start path;
-3. constructs `SmartSpectraSDK` with the renderer-embedded API key;
-4. supplies the `MediaStream` to the SDK;
-5. decodes typed metrics and maps them into application samples;
-6. stops the SDK and every media track during cleanup.
+2. acquires the exact selected camera with `getUserMedia` only from the explicit Start path, requesting ideal 1280×720 at 30 FPS;
+3. records only the negotiated track width, height, and frame rate when authorized live-test diagnostics are enabled;
+4. measures delivered frames for about three seconds before SDK construction and rejects a median below 24 FPS;
+5. detaches the hidden preflight video and cancels its frame-callback loop after success while preserving the original stream and camera track;
+6. constructs `SmartSpectraSDK` with the renderer-embedded API key and supplies that preserved `MediaStream` to it;
+7. decodes typed metrics and maps them into application samples;
+8. stops the SDK, watchdog, preflight monitor, and every media track during cleanup.
 
 The constructor sets `enableAccumulatedOutput: false` and `enableTelemetry: false`. This disables Presage session telemetry, not authentication, model delivery, usage records, or every possible SDK request. See [PRIVACY.md](PRIVACY.md).
+
+### Frame-rate safety and cleanup
+
+`src/renderer/src/signals/cameraFrames.ts` owns the preflight measurement and eight-second stall watchdog. The preflight is an application admission check: a passing result does not guarantee that later SDK processing will sustain the same delivery rate.
+
+Once the SDK is active, `frameSentThrough` events reset the watchdog. Eight seconds without one is terminal: the app records a sanitized `camera-stalled` event in authorized live-test mode, stops the session, and releases the camera.
+
+The SDK defines error 14 as `kSustainedLowFrameRate`. `smartspectra.ts` handles it before the reconnect path, stops and releases the session, displays a specific low-frame-rate message, and requires the user to initiate any new session. Other retryable errors retain the existing bounded reconnection policy.
 
 ## Requested metrics
 
@@ -67,7 +77,16 @@ For a full receipt, Before is the median of accepted baseline values and After i
 
 Authorized live-test diagnostics are implemented in `src/main/index.ts` and `src/shared/liveTest.ts`. They run only when `BREATHEBREAK_LIVE_TEST` exactly equals `R1_AUTHORIZED`, write to the gitignored `.diagnostics` directory, and use exact allowlisted schemas. See [PRIVACY.md](PRIVACY.md) for fields and retention limitations.
 
+The allowlisted camera events contain only:
+
+- `camera-fps-preflight`: the measured FPS number;
+- `camera-settings`: negotiated width, height, and frame rate, with unavailable settings represented as `null`;
+- `camera-stalled`: the event timestamp and session identity already used by diagnostics.
+
+They do not add frames, raw physiological values, device IDs, camera labels beyond the existing session-start record, or API keys. Negotiated-settings recording was added after the latest hardware runs and has not yet been verified on hardware.
+
 ## Verification boundary
 
-Offline tests cover mapping, gating, state transitions, receipt calculation, session safety, simulation isolation, and fake-real-source integration. R3 and R4 supplied real-SDK evidence on earlier builds. The current merged build's safety and receipt flow still require the separately authorized R5 hardware run; simulation and fake-source results are not real sensing evidence.
+Offline tests cover mapping, gating, state transitions, receipt calculation, camera preflight and cleanup, permission policy, SDK-frame watchdog behavior, error-14 terminal handling, session safety, simulation isolation, and fake-real-source integration. The complete suite currently passes 145 of 145 tests when run with one worker. Simulation and fake-source results are not real sensing evidence.
 
+Real R2–R6 and later error-14 evidence is summarized in the README. It verifies portions of SDK integration and cleanup but does not establish a successful full Before/After receipt on the current build. The newer negotiated camera-settings diagnostic event remains hardware-unverified.
