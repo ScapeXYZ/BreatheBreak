@@ -1,11 +1,11 @@
 # Reset Receipt submission checklist
 
-Status reflects evidence available locally on 2026-11-15. `PASS` means the requirement is directly supported by source, documentation, or sanitized telemetry; it does not imply current-build real-hardware verification unless stated.
+Status reflects evidence available locally on 2026-11-16. `PASS` means the requirement is directly supported by source, documentation, or sanitized telemetry; it does not imply a successful full Before/After receipt unless stated.
 
 | Official requirement | Status | Evidence | Remaining work |
 | --- | --- | --- | --- |
 | SmartSpectra SDK integrated | PASS | `package.json`; `src/main/index.ts`; `src/preload/index.ts`; `src/renderer/src/signals/smartspectra.ts` | Keep the production credential private and follow the SDK's distribution terms. |
-| At least one live Presage signal | PASS | Private ignored `.diagnostics/r1-live-test.ndjson`: real sessions R3 (`6d47a40d-1a71-4062-b6e9-cf042affe72a`), R4 (`f415802a-61d1-4738-af9a-624a33fcb469`), and R6 (`18431cfe-270c-4e15-8c93-1410888c30eb`) contain nonzero rate-sample windows; `README.md` and `docs/CHECKLIST.md` document their limits. | No current-build real run produced a full Before/After receipt; do not publish private diagnostics. |
+| At least one live Presage signal | PASS | [November 16 real-SDK evidence](evidence/REAL_SDK_SESSION_2026-11-16.md) and [receipt screenshot](images/real-sdk-receipt-2026-11-16.png) document a current-build real run with 30 unique rate samples and a partial receipt. | The run did not qualify for a full Before/After comparison; do not publish private diagnostics. |
 | Public repository with setup instructions | PARTIAL | Git remote `backup` points to `https://github.com/ScapeXYZ/BreatheBreak.git`; setup and local credential instructions are in `README.md`. Public accessibility was not verified offline. | Confirm unauthenticated public access and that clean-clone setup succeeds. |
 | Demo video | FAIL | No demo-video artifact or link was found in the repository. | Record and publish an honest demo using authorized real evidence; clearly label any simulation footage. |
 | DEV post using the official template and `#presagechallenge` | UNKNOWN | No DEV-post draft or published URL was found locally. | Create the post from the official template, include `#presagechallenge`, and record its public URL. |

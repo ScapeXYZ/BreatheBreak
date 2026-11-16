@@ -33,7 +33,7 @@ This register covers the substantive claims in `README.md` and `docs/PRIVACY.md`
 | Partial receipt uses overall median/range/count, while fewer than two readings are insufficient. | `receipt.ts`; `ReceiptView.tsx`; receipt tests | Verified offline. |
 | Interrupted pacing invalidates comparison and export. | `receipt.ts`; `ReceiptView.tsx`; `exportReceipt.ts`; pacer/receipt tests | Verified offline. |
 | R3 and R4 were real-SDK sessions on earlier builds. | Private gitignored `.diagnostics/r1-live-test.ndjson`; `docs/CHECKLIST.md` | Verified from sanitized lifecycle/source records; not current-build evidence. |
-| Current-build real-hardware evidence exists, but it does not include a successful full Before/After receipt. | Private gitignored `.diagnostics/r1-live-test.ndjson`; `README.md`; `docs/CHECKLIST.md` | Verified boundary: R5/R6 and later error-14 runs exercised hardware paths; none produced a valid full receipt. |
+| Current-build real-hardware evidence includes a real partial receipt, but not a successful full Before/After receipt. | `docs/evidence/REAL_SDK_SESSION_2026-11-16.md`; `docs/images/real-sdk-receipt-2026-11-16.png`; private gitignored `.diagnostics/r1-live-test.ndjson` | Verified boundary: the November 16 run produced one baseline and seven guided receipt readings, so comparison eligibility was not met. |
 | The first commit was November 11, 2026. | Git commit `209c56e` | Verified from local Git history. |
 | Live-test diagnostics run only for the exact authorization sentinel and are gitignored. | `src/shared/liveTest.ts`; `src/main/index.ts`; `.gitignore`; `R1-LIVE-TEST-RUNBOOK.md` | Verified by source. |
 | Diagnostics contain allowlisted identity, timestamps, errors, counts, confidence bins, timing, CPU, camera label, and signal share. | `src/shared/liveTest.ts` exact record types/validators | Verified by source. |
@@ -45,7 +45,8 @@ This register covers the substantive claims in `README.md` and `docs/PRIVACY.md`
 | Reset Receipt does not implement video/frame recording or save camera images. | `signals/smartspectra.ts`; diagnostics/export schemas; repository search | Supported by current source; not independently verified by exhaustive filesystem/network capture. |
 | Receipt export excludes IDs, camera labels, raw readings, and frames. | `features/receipt/exportReceipt.ts`; export tests | Verified by allowlisted export object. |
 | Camera capture starts only from explicit session Start, though real-mode enumeration occurs beforehand. | `App.tsx`; `signals/smartspectra.ts` | Verified by source; OS/SDK behavior not independently verified. |
-| Cleanup stops SDK and media tracks. | `signals/smartspectra.ts`; `signals/cameras.ts`; journey tests | Verified offline; current hardware release unverified. |
+| Cleanup stops SDK and media tracks. | `signals/smartspectra.ts`; `signals/cameras.ts`; journey tests; `docs/evidence/REAL_SDK_SESSION_2026-11-16.md` | Verified offline and by the November 16 hardware run, which logged track release 57 ms after Stop. |
+| Authorized diagnostics record negotiated width, height, and frame rate without device IDs. | `src/shared/liveTest.ts`; `signals/cameras.ts`; `docs/evidence/REAL_SDK_SESSION_2026-11-16.md` | Verified by source and a real 640×480/30 FPS record. |
 | SmartSpectra telemetry is configured off. | `signals/smartspectra.ts` (`enableTelemetry:false`) | Verified by source. |
 | Presage says disabling telemetry starts no telemetry session and transmits nothing for telemetry. | [Presage SDK Telemetry & Privacy](https://smartspectra.presagetech.com/docs/telemetry-and-privacy/) | Vendor statement; not independently verified. |
 | Presage says telemetry can include SDK/runtime, session, performance, quality/error, and timestamp data but excludes frames and physiological values. | Presage SDK Telemetry & Privacy | Vendor statement; not independently verified. |
@@ -61,7 +62,6 @@ This register covers the substantive claims in `README.md` and `docs/PRIVACY.md`
 ## Explicitly unverified
 
 - A successful current-build real full Before/After receipt.
-- The new negotiated camera-settings diagnostic event on real hardware.
 - Complete SDK network traffic in a real session, including whether derived measurements leave the device when Insights are not requested.
 - Presage's actual storage, retention, deletion, correlation, security, and subprocessors beyond its published documentation.
 - File-system behavior across every crash, power loss, forced termination, or supported Windows configuration.

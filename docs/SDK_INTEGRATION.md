@@ -83,10 +83,10 @@ The allowlisted camera events contain only:
 - `camera-settings`: negotiated width, height, and frame rate, with unavailable settings represented as `null`;
 - `camera-stalled`: the event timestamp and session identity already used by diagnostics.
 
-They do not add frames, raw physiological values, device IDs, camera labels beyond the existing session-start record, or API keys. Negotiated-settings recording was added after the latest hardware runs and has not yet been verified on hardware.
+They do not add frames, raw physiological values, device IDs, camera labels beyond the existing session-start record, or API keys. The November 16 real run verified a sanitized negotiated-settings record of 640×480 at 30 FPS.
 
 ## Verification boundary
 
-Offline tests cover mapping, gating, state transitions, receipt calculation, camera preflight and cleanup, permission policy, SDK-frame watchdog behavior, error-14 terminal handling, session safety, simulation isolation, and fake-real-source integration. The complete suite currently passes 145 of 145 tests when run with one worker. Simulation and fake-source results are not real sensing evidence.
+Offline tests cover mapping, gating, state transitions, receipt calculation, camera preflight and cleanup, permission policy, SDK-frame watchdog behavior, error-14 terminal handling, session safety, simulation isolation, and fake-real-source integration. The complete suite currently passes 146 of 146 tests when run with one worker. Simulation and fake-source results are not real sensing evidence.
 
-Real R2–R6 and later error-14 evidence is summarized in the README. It verifies portions of SDK integration and cleanup but does not establish a successful full Before/After receipt on the current build. The newer negotiated camera-settings diagnostic event remains hardware-unverified.
+Real R2–R6, later error-14 evidence, and the November 16 partial receipt are summarized in the README. They verify real SDK integration, negotiated camera settings, accepted readings, pacer lifecycle, and camera cleanup, but do not establish a successful full Before/After receipt on the current build.

@@ -79,13 +79,13 @@ Real mode requests an ideal 640×480 resolution at 30 FPS. The Presage SDK team 
 
 SmartSpectra error 14 is `kSustainedLowFrameRate`. Reset Receipt treats it as terminal: it does not retry automatically, stops the session, releases the camera, and asks the user to try a different camera or connection, close other applications, and start a new session. Restart is always user initiated.
 
-In repeated Camo-over-Wi-Fi diagnostics, the camera passed the preflight at 30 FPS while subsequent SDK frame delivery was approximately 14–15 FPS and ended with error 14. These records show the mismatch but do not establish Wi-Fi as its cause. The app now records the camera track's negotiated width, height, and frame rate in sanitized live-test diagnostics; that new record has not yet been verified in a hardware run.
+In repeated Camo-over-Wi-Fi diagnostics, the camera passed the preflight at 30 FPS while subsequent SDK frame delivery was approximately 14–15 FPS and ended with error 14. These records show the mismatch but do not establish Wi-Fi as its cause. A later successful run verified the sanitized negotiated-settings record at 640×480 and 30 FPS.
 
 ## Camera positioning for reliable readings
 
-![Illustrative camera framing with a seated person facing forward and the head, shoulders, and upper chest visible](docs/images/camera-positioning.png)
+![Camera-positioning reference with a seated person facing forward and the head, shoulders, and upper chest visible](docs/images/camera-positioning-reference.jpg)
 
-*Illustrative placeholder created for this guide; replace it if the project owner supplies a repository-approved reference image.*
+*Repository-approved framing reference supplied by the project owner.*
 
 For the clearest signal:
 
@@ -125,9 +125,27 @@ The guided pace is not a physiological measurement. The app does not diagnose, r
 
 ## What is tested—and what is not
 
-The complete automated suite passes 145 of 145 tests on the documented Windows toolchain when run with one worker (`npm test -- --maxWorkers=1`). Coverage includes SDK payload mapping, confidence/stability/range gating, timestamp deduplication, baseline and receipt calculations, pacer timing/interruption, camera preflight and cleanup, permission policy, session safety, aggregate export, onboarding, simulation isolation, and a fake real-source journey. TypeScript typecheck and the production build also pass.
+The complete automated suite passes 146 of 146 tests on the documented Windows toolchain when run with one worker (`npm test -- --maxWorkers=1`). Coverage includes SDK payload mapping, confidence/stability/range gating, timestamp deduplication, baseline and receipt calculations, pacer timing/interruption, camera preflight and cleanup, permission policy, session safety, aggregate export, onboarding, simulation isolation, and a fake real-source journey. TypeScript typecheck and the production build also pass.
 
 Simulation, fixtures, and fake sources are never presented as real sensing evidence. No real run has produced a verified full Before/After receipt on the current build.
+
+### Verified real SDK receipt evidence — November 16, 2026
+
+![Real SmartSpectra partial Reset Receipt showing session median 18.6, observed range 6.0–21.7, and eight receipt readings](docs/images/real-sdk-receipt-2026-11-16.png)
+
+| Result | Verified value |
+| --- | --- |
+| Source | Real SmartSpectra SDK |
+| Session duration | 106.081 seconds |
+| Negotiated camera / preflight | 640×480 at 30 FPS / 30 FPS |
+| Unique breathing-rate samples | 30 |
+| Gate-accepted samples | 9; confidence bins `5 / 16 / 5 / 4` |
+| Baseline | Completed by 45-second cap; receipt `Before n=1` |
+| Guided phase | Pacer started and ended; receipt `After n=7` |
+| SDK/session safety | No SDK errors; no camera stall; tracks stopped 57 ms after Stop |
+| Receipt | Partial: median 18.6, range 6.0–21.7 breaths/min, 8 phase-eligible readings |
+
+The nine-versus-eight count is consistent with the current rules. The ninth accepted sample arrived after `pacer-end`: diagnostics count every gate-accepted unique sample, while the receipt includes only readings captured during the baseline or guided phase. This run therefore demonstrates real sensing and a real partial receipt, but **does not demonstrate a valid Before/After comparison** because the baseline had fewer than two accepted readings. See the [full sanitized evidence report](docs/evidence/REAL_SDK_SESSION_2026-11-16.md).
 
 ### Real-session evidence boundary
 
@@ -140,7 +158,8 @@ Private, gitignored sanitized diagnostics support the following limited claims:
 | R4 | Real Camo session `f415802a-61d1-4738-af9a-624a33fcb469` recorded accepted readings and a pacer interval, but its first pacer interval lasted about 13 minutes 24 seconds. | Earlier-build timing failure; it motivated later three-minute, suspend/lock, and interruption safeguards and is not valid receipt evidence. |
 | R5 | Run `47cf7492-16c6-4fa7-881b-2503999566b2` used the integrated webcam, lasted 40.971 seconds, produced zero unique rate samples, reported no SDK errors, logged media tracks stopped, and released 35 ms after Stop. | Wrong camera for the planned Camo validation; no measured FPS was recorded and the run is invalid for Before/After validation. |
 | R6 | Run `18431cfe-270c-4e15-8c93-1410888c30eb` used Camo, lasted 91.475 seconds, produced 20 unique rate samples and one accepted baseline reading, completed baseline by cap, never started the pacer, reported no SDK errors, and released media 34 ms after Stop. | No guided comparison or valid full receipt. |
-| Recent error-14 runs | Camo-over-Wi-Fi passed a recorded 30 FPS preflight, then SDK delivery fell to approximately 14–15 FPS and SmartSpectra emitted error 14; tracks were released. | Confirms sustained-low-frame-rate handling, not its root cause and not a successful receipt. Negotiated camera-settings diagnostics were added afterward and remain unverified on hardware. |
+| Recent error-14 runs | Camo-over-Wi-Fi passed a recorded 30 FPS preflight, then SDK delivery fell to approximately 14–15 FPS and SmartSpectra emitted error 14; tracks were released. | Confirms sustained-low-frame-rate handling, not its root cause and not a successful receipt. Negotiated camera settings were verified by the subsequent November 16 run. |
+| November 16 current-build evidence | Run `403701e1-6e8d-486d-a56d-0f8ce021fba2`, session `761df35a-f09b-41c9-93b8-e79562894807`, negotiated 640×480 at 30 FPS, completed baseline and pacer, produced 30 unique samples and a real partial receipt, and released media without SDK error or stall. | Receipt had `Before n=1` and `After n=7`; no valid Before/After comparison. |
 
 ## Known limitations
 
