@@ -81,6 +81,30 @@ SmartSpectra error 14 is `kSustainedLowFrameRate`. Reset Receipt treats it as te
 
 In repeated Camo-over-Wi-Fi diagnostics, the camera passed the preflight at 30 FPS while subsequent SDK frame delivery was approximately 14–15 FPS and ended with error 14. These records show the mismatch but do not establish Wi-Fi as its cause. The app now records the camera track's negotiated width, height, and frame rate in sanitized live-test diagnostics; that new record has not yet been verified in a hardware run.
 
+## Camera positioning for reliable readings
+
+![Illustrative camera framing with a seated person facing forward and the head, shoulders, and upper chest visible](docs/images/camera-positioning.png)
+
+*Illustrative placeholder created for this guide; replace it if the project owner supplies a repository-approved reference image.*
+
+For the clearest signal:
+
+- Sit facing the camera and position it close to eye level.
+- Move far enough back for your full head, both shoulders, and upper chest to remain visible.
+- Use soft, even light from the front. Avoid a bright window or lamp directly behind you.
+- Keep the camera and its support stable throughout the session.
+- Minimize talking, turning, and large upper-body movements while readings are collected.
+- Breathe naturally during the baseline; follow the on-screen guide only after starting the pacer yourself.
+
+### Avoid
+
+- framing that crops the upper chest or either shoulder;
+- dim, uneven, strongly backlit, or rapidly changing light;
+- excessive movement or a moving camera; and
+- extreme high, low, or side camera angles.
+
+Proper positioning can improve signal quality, but it does not guarantee accepted readings. The existing rules are unchanged: real mode still rejects a preflight below 24 FPS while explaining that the SDK needs at least 25 FPS, and a breathing-rate sample still needs SDK confidence of at least 45 plus valid stability, timestamp, and range checks.
+
 ## Consent and data handling
 
 The application does not implement video or frame recording. Raw samples are held in bounded memory buffers during a session and cleared after the recap summary is created. A guide-seen flag and selected camera ID are stored in Electron `localStorage`. Sanitized diagnostics are written only in explicitly authorized live-test mode and are gitignored.
