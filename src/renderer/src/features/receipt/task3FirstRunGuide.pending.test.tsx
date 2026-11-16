@@ -86,8 +86,49 @@ describe('Task 3 first-run framing guide contract', () => {
   })
 
   it('keeps Start disabled until explicit consent and never starts from guide navigation', () => {
+    const skip = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Skip guide')!
+    act(() => skip.click())
+    const reveal = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Start a reset')!
+    act(() => reveal.click())
     const start = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Start session')!
     expect(start.disabled).toBe(true)
+    expect(source.start).not.toHaveBeenCalled()
+  })
+
+  it('traps focus in consent, supports Escape, and restores the opener', () => {
+    const skip = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Skip guide')!
+    act(() => skip.click())
+    const opener = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Start a reset')!
+    opener.focus()
+    act(() => opener.click())
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"][aria-labelledby="consent-title"]')!
+    expect(dialog).toBeTruthy()
+    expect(document.querySelector<HTMLElement>('.welcome-primary')?.inert).toBe(true)
+    expect(dialog.contains(document.activeElement)).toBe(true)
+    act(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })))
+    expect(document.querySelector('[aria-labelledby="consent-title"]')).toBeNull()
+    expect(document.activeElement).toBe(opener)
+    expect(useSession.getState().consented).toBe(false)
+  })
+
+  it('resets the consent checkbox every time the modal opens', () => {
+    const skip = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Skip guide')!
+    act(() => skip.click())
+    act(() => useSession.getState().setConsent(true))
+    const opener = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Start a reset')!
+    act(() => opener.click())
+    expect(useSession.getState().consented).toBe(false)
+    expect(document.querySelector<HTMLInputElement>('.consent-check input')?.checked).toBe(false)
+  })
+  it('provides explicit Cancel without granting consent', () => {
+    const skip = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Skip guide')!
+    act(() => skip.click())
+    const opener = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Start a reset')!
+    act(() => opener.click())
+    const cancel = [...document.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent === 'Cancel')!
+    act(() => cancel.click())
+    expect(document.querySelector('[aria-labelledby="consent-title"]')).toBeNull()
+    expect(useSession.getState().consented).toBe(false)
     expect(source.start).not.toHaveBeenCalled()
   })
 })

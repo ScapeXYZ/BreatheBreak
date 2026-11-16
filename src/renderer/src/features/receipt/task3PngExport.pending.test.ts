@@ -40,6 +40,12 @@ describe('Task 3 local-only PNG export contract', () => {
     expect(JSON.stringify(model)).not.toMatch(/readings|camera|api.?key|run.?id|session.?id|frame/i)
   })
 
+  it('includes guide pace only as approved finite aggregate values', () => {
+    const model = toExportableReceipt({ ...validReal, guideInhaleSeconds: 4, guideExhaleSeconds: 6 }) as Record<string, unknown>
+    expect(model).toMatchObject({ guideInhaleSeconds: 4, guideExhaleSeconds: 6 })
+    expect(JSON.stringify(model)).not.toMatch(/reading|timestamp|camera|identifier/i)
+  })
+
   it('uses approved real and simulation filenames and disclosure', () => {
     const at = new Date(2026, 10, 15, 9, 7)
     expect(receiptFilename('smartspectra', at)).toBe('reset-receipt-2026-11-15-0907.png')

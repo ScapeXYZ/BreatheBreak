@@ -31,7 +31,7 @@ async function advance(milliseconds: number): Promise<void> {
 }
 
 function expectSimulationDisclosure(): void {
-  expect(document.body.textContent).toContain('Dev simulation: synthetic data, not demo evidence')
+  expect(document.body.textContent).toContain('SIMULATION, NOT REAL')
 }
 
 async function runJourney(width: number, height: number): Promise<void> {
@@ -49,11 +49,14 @@ async function runJourney(width: number, height: number): Promise<void> {
     if (existingConsent.checked) act(() => existingConsent.click())
   }
 
-  const source = document.querySelector<HTMLSelectElement>('.field-label select')!
-  act(() => {
+  if (!document.querySelector('.consent-panel')) await click('Start a reset')
+
+  const source = document.querySelector<HTMLSelectElement>('.field-label select')
+  if (source) act(() => {
     source.value = 'simulation'
     source.dispatchEvent(new Event('change', { bubbles: true }))
   })
+  else expect(useSession.getState().source).toBe('simulation')
   expect(button('Start session').disabled).toBe(true)
   expectSimulationDisclosure()
   expect(document.querySelector('.camera-status')?.textContent).toBe('Camera: off, simulation')
@@ -66,34 +69,27 @@ async function runJourney(width: number, height: number): Promise<void> {
   await click('Start session')
   expect(useSession.getState().phase).toBe('running')
   await advance(1_000)
-  expect(document.querySelector('.rate-value')?.textContent).toBe('—')
-  expect(document.body.textContent).toContain('Measuring…')
-  expect(document.body.textContent).toContain('Your breathing, live')
+  expect(document.body.textContent).toContain('This session')
+  expect(document.querySelector('.session-instrument')?.textContent).toContain('Natural breathing')
   expect(document.body.textContent).not.toContain('Flower quality')
-  expect(document.querySelector('.signal-list dt')?.textContent).toBe('Signal')
+  expect(document.body.textContent).toContain('Chest trace')
   expect(document.querySelector('canvas[aria-label="Live measured breathing flower"]')).toBeTruthy()
   expectSimulationDisclosure()
 
-  expect(button('Collecting baseline…').disabled).toBe(true)
   expect(document.body.textContent).toContain('Natural breathing: 0 of 3 readings')
   await advance(31_000)
-  expect(document.body.textContent).toContain('Baseline done. Start your guided minute.')
+  expect(document.body.textContent).toContain('Start guided minute')
   expect(useSession.getState().gatedRates.length).toBeGreaterThanOrEqual(3)
-  const opener = button('Open guided pacer')
-  opener.focus()
-  await click('Open guided pacer')
-  expect(document.activeElement?.getAttribute('aria-label')).toBe('Close guided pacer')
+  expect(document.querySelector('details.pace-settings')?.hasAttribute('open')).toBe(false)
   expect(document.body.textContent).toContain('GUIDED, not measured')
   expectSimulationDisclosure()
-  await click('Start guided pacing')
+  await click('Start guided minute')
   expect(window.breathebreak.recordLiveTestEvent).toHaveBeenCalledWith({event:'pacer-start'})
   await advance(48_000)
-  expect(document.querySelector('.pacer-overlay')?.getAttribute('data-pacer-status')).toBe('complete')
+  expect(document.querySelector('.guided-inline-card')?.getAttribute('data-pacer-status')).toBe('complete')
   expect(sessionRecorder.guidedCompletions.size).toBe(1)
   await click('Close')
   expect(window.breathebreak.recordLiveTestEvent).toHaveBeenCalledWith({event:'pacer-end'})
-  expect(document.querySelector('.pacer-overlay')).toBeNull()
-  expect(document.activeElement).toBe(opener)
 
   const ratesAtStop = [...useSession.getState().gatedRates]
   await click('Stop session')
