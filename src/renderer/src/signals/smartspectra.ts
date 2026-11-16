@@ -6,6 +6,7 @@ import { ReconnectionPolicy, wait } from './reconnection'
 import type { CameraDevice, SignalListener, SignalQuality, SignalSource, SourceStatus } from './types'
 import { retryAttemptsForLiveTest } from '../../../shared/liveTest'
 import { mapSmartSpectraMetrics } from './smartspectraMapping'
+import { CameraFrameMonitor, lowFrameRateMessage, MINIMUM_PREFLIGHT_FPS } from './cameraFrames'
 
 const REQUESTED_METRICS = [MetricType.CHEST_BREATHING, MetricType.BREATHING_RATE, MetricType.ABDOMEN_BREATHING]
 
@@ -37,6 +38,7 @@ export class SmartSpectraSignalSource implements SignalSource {
   readonly available = Boolean(import.meta.env.VITE_SMARTSPECTRA_API_KEY)
   private sdk?: SmartSpectraSDK
   private stream?: MediaStream
+  private frameMonitor?: CameraFrameMonitor
   private listener?: SignalListener
   private options?: StartOptions
   private quality: SignalQuality = { kind: 'warming', message: 'Preparing the signal' }
@@ -87,6 +89,14 @@ export class SmartSpectraSignalSource implements SignalSource {
     if (!camera) throw new Error('The selected camera is no longer available. Choose another camera.')
     this.quality = { kind: 'warming', message: 'Preparing the signal' }
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { deviceId: { exact: cameraId }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } })
+    const frameMonitor = new CameraFrameMonitor(this.stream)
+    this.frameMonitor = frameMonitor
+    const deliveredFps = await frameMonitor.measure()
+    if (deliveredFps < MINIMUM_PREFLIGHT_FPS) {
+      this.releaseMediaStream()
+      this.stream = undefined
+      throw new Error(lowFrameRateMessage(deliveredFps))
+    }
     const sdk = new SmartSpectraSDK({
       apiKey: import.meta.env.VITE_SMARTSPECTRA_API_KEY,
       requestedMetrics: REQUESTED_METRICS,
@@ -171,6 +181,8 @@ export class SmartSpectraSignalSource implements SignalSource {
   }
 
   private releaseMediaStream(): void {
+    this.frameMonitor?.stop()
+    this.frameMonitor = undefined
     if (stopMediaStream(this.stream) > 0 && this.liveTestEnabled) window.breathebreak.recordLiveTestEvent({ event: 'media-tracks-stopped' })
   }
 
