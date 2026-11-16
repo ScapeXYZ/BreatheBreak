@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CameraFrameMonitor, lowFrameRateMessage, medianDeliveredFps } from './cameraFrames'
 
 class FakeVideo {
@@ -14,7 +14,26 @@ class FakeVideo {
 }
 
 describe('camera FPS preflight', () => {
-  afterEach(() => vi.useRealTimers())
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window')
+
+  beforeEach(() => {
+    const browserWindow = {
+      setTimeout(callback: TimerHandler, milliseconds?: number): number {
+        return globalThis.setTimeout(callback as (...args: unknown[]) => void, milliseconds) as unknown as number
+      },
+      clearTimeout(timer?: number): void {
+        globalThis.clearTimeout(timer)
+      }
+    }
+    Object.defineProperty(globalThis, 'window', { configurable: true, value: browserWindow })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+    if (originalWindow) Object.defineProperty(globalThis, 'window', originalWindow)
+    else delete (globalThis as { window?: Window }).window
+  })
 
   it('measures median delivered FPS from a mocked stream for three seconds', async () => {
     vi.useFakeTimers()
@@ -34,6 +53,25 @@ describe('camera FPS preflight', () => {
   it('reports zero without enough delivered frames and formats the required warning', () => {
     expect(medianDeliveredFps([100])).toBe(0)
     expect(lowFrameRateMessage(23.6)).toBe('This camera delivers about 24 frames per second. The SDK needs at least 25. Try another camera.')
+  })
+
+  it('preserves the browser timer receiver during measurement and cleanup', async () => {
+    const video = new FakeVideo()
+    const setTimeoutSpy = vi.spyOn(window, 'setTimeout').mockImplementation(function (this: Window, callback: TimerHandler, milliseconds?: number) {
+      if (this !== window) throw new TypeError('Illegal invocation')
+      if (milliseconds === 3_000 && typeof callback === 'function') queueMicrotask(callback)
+      return 17
+    })
+    const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout').mockImplementation(function (this: Window) {
+      if (this !== window) throw new TypeError('Illegal invocation')
+    })
+    const monitor = new CameraFrameMonitor({} as MediaStream, video)
+
+    await expect(monitor.measure()).resolves.toBe(0)
+    monitor.watchForStall(() => undefined)
+    expect(() => monitor.stop()).not.toThrow()
+    expect(setTimeoutSpy).toHaveBeenCalled()
+    expect(clearTimeoutSpy).toHaveBeenCalledWith(17)
   })
 
   it('fires after eight seconds without a frame and resets when a frame arrives', async () => {

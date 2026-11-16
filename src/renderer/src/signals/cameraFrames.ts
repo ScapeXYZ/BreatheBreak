@@ -27,8 +27,8 @@ export class CameraFrameMonitor {
   constructor(
     private readonly stream: MediaStream,
     private readonly video: FrameVideo = document.createElement('video'),
-    private readonly schedule: (callback: () => void, milliseconds: number) => ReturnType<typeof setTimeout> = setTimeout,
-    private readonly cancel: (timer: ReturnType<typeof setTimeout>) => void = clearTimeout
+    private readonly schedule: (callback: () => void, milliseconds: number) => ReturnType<typeof setTimeout> = (callback, milliseconds) => window.setTimeout(callback, milliseconds) as ReturnType<typeof setTimeout>,
+    private readonly cancel: (timer: ReturnType<typeof setTimeout>) => void = (timer) => window.clearTimeout(timer as number)
   ) {}
 
   async measure(durationMs = CAMERA_FPS_PREFLIGHT_MS): Promise<number> {
