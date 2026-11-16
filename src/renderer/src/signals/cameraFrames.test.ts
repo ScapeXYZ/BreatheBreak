@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { CameraFrameMonitor, lowFrameRateMessage, medianDeliveredFps } from './cameraFrames'
+import { CameraFrameMonitor, FrameStallWatchdog, lowFrameRateMessage, medianDeliveredFps } from './cameraFrames'
 
 class FakeVideo {
   muted = false
@@ -37,7 +37,8 @@ describe('camera FPS preflight', () => {
 
   it('measures median delivered FPS from a mocked stream for three seconds', async () => {
     vi.useFakeTimers()
-    const stream = {} as MediaStream
+    const track = { stop: vi.fn() }
+    const stream = { getTracks: () => [track] } as unknown as MediaStream
     const video = new FakeVideo()
     const monitor = new CameraFrameMonitor(stream, video)
     const measurement = monitor.measure()
@@ -48,6 +49,8 @@ describe('camera FPS preflight', () => {
     expect(video.srcObject).toBe(stream)
     monitor.stop()
     expect(video.srcObject).toBeNull()
+    expect(video.cancelVideoFrameCallback).toHaveBeenCalled()
+    expect(track.stop).not.toHaveBeenCalled()
   })
 
   it('reports zero without enough delivered frames and formats the required warning', () => {
@@ -68,8 +71,10 @@ describe('camera FPS preflight', () => {
     const monitor = new CameraFrameMonitor({} as MediaStream, video)
 
     await expect(monitor.measure()).resolves.toBe(0)
-    monitor.watchForStall(() => undefined)
     expect(() => monitor.stop()).not.toThrow()
+    const watchdog = new FrameStallWatchdog(() => undefined)
+    watchdog.start()
+    expect(() => watchdog.stop()).not.toThrow()
     expect(setTimeoutSpy).toHaveBeenCalled()
     expect(clearTimeoutSpy).toHaveBeenCalledWith(17)
   })
@@ -77,21 +82,26 @@ describe('camera FPS preflight', () => {
   it('fires after eight seconds without a frame and resets when a frame arrives', async () => {
     vi.useFakeTimers()
     const video = new FakeVideo()
-    const monitor = new CameraFrameMonitor({} as MediaStream, video)
-    const measurement = monitor.measure()
-    await vi.waitFor(() => expect(video.play).toHaveBeenCalled())
-    video.frame(0)
-    video.frame(40)
-    await vi.advanceTimersByTimeAsync(3_000)
-    await measurement
     const stalled = vi.fn()
-    monitor.watchForStall(stalled)
+    const watchdog = new FrameStallWatchdog(stalled)
+    watchdog.start()
     await vi.advanceTimersByTimeAsync(7_000)
-    video.frame(7_040)
+    watchdog.observeFrame()
     await vi.advanceTimersByTimeAsync(7_999)
     expect(stalled).not.toHaveBeenCalled()
     await vi.advanceTimersByTimeAsync(1)
     expect(stalled).toHaveBeenCalledOnce()
-    monitor.stop()
+    watchdog.stop()
+  })
+
+  it('cancels the SDK frame watchdog during teardown', async () => {
+    vi.useFakeTimers()
+    const stalled = vi.fn()
+    const watchdog = new FrameStallWatchdog(stalled)
+    watchdog.start()
+    await vi.advanceTimersByTimeAsync(4_000)
+    watchdog.stop()
+    await vi.advanceTimersByTimeAsync(8_000)
+    expect(stalled).not.toHaveBeenCalled()
   })
 })

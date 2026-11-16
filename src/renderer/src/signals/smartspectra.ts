@@ -6,7 +6,7 @@ import { ReconnectionPolicy, wait } from './reconnection'
 import type { CameraDevice, SignalListener, SignalQuality, SignalSource, SourceStatus } from './types'
 import { retryAttemptsForLiveTest } from '../../../shared/liveTest'
 import { mapSmartSpectraMetrics } from './smartspectraMapping'
-import { CameraFrameMonitor, lowFrameRateMessage, MINIMUM_PREFLIGHT_FPS } from './cameraFrames'
+import { CameraFrameMonitor, FrameStallWatchdog, lowFrameRateMessage, MINIMUM_PREFLIGHT_FPS } from './cameraFrames'
 
 const REQUESTED_METRICS = [MetricType.CHEST_BREATHING, MetricType.BREATHING_RATE, MetricType.ABDOMEN_BREATHING]
 export const SUSTAINED_LOW_FRAME_RATE_MESSAGE = 'The camera could not sustain the frame rate needed for measurement. Try a different camera or connection, close other applications, then start a new session.'
@@ -40,6 +40,7 @@ export class SmartSpectraSignalSource implements SignalSource {
   private sdk?: SmartSpectraSDK
   private stream?: MediaStream
   private frameMonitor?: CameraFrameMonitor
+  private stallWatchdog?: FrameStallWatchdog
   private listener?: SignalListener
   private options?: StartOptions
   private quality: SignalQuality = { kind: 'warming', message: 'Preparing the signal' }
@@ -99,6 +100,8 @@ export class SmartSpectraSignalSource implements SignalSource {
       this.stream = undefined
       throw new Error(lowFrameRateMessage(deliveredFps))
     }
+    frameMonitor.stop()
+    this.frameMonitor = undefined
     const sdk = new SmartSpectraSDK({
       apiKey: import.meta.env.VITE_SMARTSPECTRA_API_KEY,
       requestedMetrics: REQUESTED_METRICS,
@@ -112,11 +115,13 @@ export class SmartSpectraSignalSource implements SignalSource {
     sdk.on('frameSentThrough', (sent) => {
       this.deliveredFrames += 1
       if (sent) this.sentFrames += 1
+      this.stallWatchdog?.observeFrame()
     })
     sdk.on('error', (code, message, retryable) => { void this.handleError(code, message, retryable) })
     try {
       await sdk.start()
-      frameMonitor.watchForStall(() => { void this.handleCameraStall() })
+      this.stallWatchdog = new FrameStallWatchdog(() => { void this.handleCameraStall() })
+      this.stallWatchdog.start()
     } catch (error) { this.release(); throw error }
   }
 
@@ -201,6 +206,8 @@ export class SmartSpectraSignalSource implements SignalSource {
   private releaseMediaStream(): void {
     this.frameMonitor?.stop()
     this.frameMonitor = undefined
+    this.stallWatchdog?.stop()
+    this.stallWatchdog = undefined
     if (stopMediaStream(this.stream) > 0 && this.liveTestEnabled) window.breathebreak.recordLiveTestEvent({ event: 'media-tracks-stopped' })
   }
 
