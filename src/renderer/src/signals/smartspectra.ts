@@ -9,6 +9,7 @@ import { mapSmartSpectraMetrics } from './smartspectraMapping'
 import { CameraFrameMonitor, lowFrameRateMessage, MINIMUM_PREFLIGHT_FPS } from './cameraFrames'
 
 const REQUESTED_METRICS = [MetricType.CHEST_BREATHING, MetricType.BREATHING_RATE, MetricType.ABDOMEN_BREATHING]
+export const SUSTAINED_LOW_FRAME_RATE_MESSAGE = 'The camera could not sustain the frame rate needed for measurement. Try a different camera or connection, close other applications, then start a new session.'
 
 export function friendlyQuality(code: number, hint = ''): SignalQuality {
   const messages: Record<number, string> = {
@@ -92,6 +93,7 @@ export class SmartSpectraSignalSource implements SignalSource {
     const frameMonitor = new CameraFrameMonitor(this.stream)
     this.frameMonitor = frameMonitor
     const deliveredFps = await frameMonitor.measure()
+    if (this.liveTestEnabled) window.breathebreak.recordLiveTestEvent({ event: 'camera-fps-preflight', fps: Number(deliveredFps.toFixed(1)) })
     if (deliveredFps < MINIMUM_PREFLIGHT_FPS) {
       this.releaseMediaStream()
       this.stream = undefined
@@ -148,7 +150,12 @@ export class SmartSpectraSignalSource implements SignalSource {
   private async handleError(code: number, message: string, retryable: boolean): Promise<void> {
     if (this.liveTestEnabled) window.breathebreak.recordLiveTestEvent({ event: 'sdk-error', code })
     if (this.stopping || this.recovering) return
-    if (!retryable && code !== SmartSpectraErrorCode.kSustainedLowFrameRate) {
+    if (code === SmartSpectraErrorCode.kSustainedLowFrameRate) {
+      await this.stop()
+      this.options?.onFatalError?.(SUSTAINED_LOW_FRAME_RATE_MESSAGE)
+      return
+    }
+    if (!retryable) {
       await this.stop()
       this.options?.onFatalError?.('The camera signal stopped. Please review the setup and try again.')
       return
