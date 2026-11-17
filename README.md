@@ -16,6 +16,14 @@ Reset Receipt demonstrates how physiological sensing can support transparent, ev
 
 **Reset Receipt: Take a break. See what was measured. Know what wasn't.**
 
+### Who is Reset Receipt for?
+
+Office workers, students, and anyone needing a short, guided breathing break.
+
+### What makes Reset Receipt different
+
+Unlike a basic breathing timer, Reset Receipt uses live Presage SmartSpectra measurements and only reports breathing changes when reliable readings support them. No invented results, no medical claims.
+
 ## Overview
 
 Reset Receipt is a consent-first Electron breathing visualization built with SmartSpectra SDK 3.5.0. It measures an adaptive natural-breathing baseline, offers a manually started 45-second guided pacer, and produces a receipt only from readings that pass the SDK-derived acceptance gate. It is a non-medical wellness prototype, not a diagnostic or treatment tool.
@@ -91,11 +99,11 @@ Do not start a live session unless camera use and Presage credit consumption are
 
 Before SmartSpectra starts, real mode measures delivered camera frames for about three seconds. A median result below 24 FPS is rejected before SDK initialization; the UI explains that the SDK needs at least 25 FPS and releases the camera tracks. A passing preflight is an admission check, not proof that SDK processing will sustain that rate.
 
-Real mode requests an ideal 640Ã—480 resolution at 30 FPS. The Presage SDK team directly confirmed that 640Ã—480 is supported, that 1280Ã—720 is a recommendation rather than a requirement, and that the lower resolution should not affect breathing-rate measurement. The browser and camera may negotiate different actual settings; authorized live-test diagnostics record those negotiated dimensions and frame rate.
+Real mode requests an ideal 640Ãƒâ€”480 resolution at 30 FPS. The Presage SDK team directly confirmed that 640Ãƒâ€”480 is supported, that 1280Ãƒâ€”720 is a recommendation rather than a requirement, and that the lower resolution should not affect breathing-rate measurement. The browser and camera may negotiate different actual settings; authorized live-test diagnostics record those negotiated dimensions and frame rate.
 
 SmartSpectra error 14 is `kSustainedLowFrameRate`. Reset Receipt treats it as terminal: it does not retry automatically, stops the session, releases the camera, and asks the user to try a different camera or connection, close other applications, and start a new session. Restart is always user initiated.
 
-In repeated Camo-over-Wi-Fi diagnostics, the camera passed the preflight at 30 FPS while subsequent SDK frame delivery was approximately 14â€“15 FPS and ended with error 14. These records show the mismatch but do not establish Wi-Fi as its cause. A later successful run verified the sanitized negotiated-settings record at 640Ã—480 and 30 FPS.
+In repeated Camo-over-Wi-Fi diagnostics, the camera passed the preflight at 30 FPS while subsequent SDK frame delivery was approximately 14Ã¢â‚¬â€œ15 FPS and ended with error 14. These records show the mismatch but do not establish Wi-Fi as its cause. A later successful run verified the sanitized negotiated-settings record at 640Ãƒâ€”480 and 30 FPS.
 
 ## Camera positioning for reliable readings
 
@@ -131,35 +139,35 @@ Electron permission checks and requests are denied except for video-only camera 
 
 ## Reading gate and receipt rules
 
-A unique breathing-rate sample is accepted only when its SDK timestamp is valid, confidence is at least 45, the SDK marks it stable, and its value is within 4â€“45 breaths per minute. Samples are deduplicated by SDK timestamp; there is no fixed-clock warm-up rejection.
+A unique breathing-rate sample is accepted only when its SDK timestamp is valid, confidence is at least 45, the SDK marks it stable, and its value is within 4Ã¢â‚¬â€œ45 breaths per minute. Samples are deduplicated by SDK timestamp; there is no fixed-clock warm-up rejection.
 
-A full Before/After receipt requires at least two accepted readings in each phase. Before is the baseline median. After is the median of up to the final three guided readings. A partial receipt shows aggregate median, range, and count without a comparison. Fewer than two total accepted readings show **â€œNot enough stable readings for a receipt.â€** An interrupted pacer invalidates the comparison and disables export.
+A full Before/After receipt requires at least two accepted readings in each phase. Before is the baseline median. After is the median of up to the final three guided readings. A partial receipt shows aggregate median, range, and count without a comparison. Fewer than two total accepted readings show **Ã¢â‚¬Å“Not enough stable readings for a receipt.Ã¢â‚¬Â** An interrupted pacer invalidates the comparison and disables export.
 
 ## Safety and non-medical boundary
 
-The guided pace is not a physiological measurement. The app does not diagnose, recommend treatment, make medical decisions, infer stress or relaxation, or support covert monitoring. Valid real receipts disclose: **â€œMeasured by SmartSpectra. Not a score. Not medical.â€** SmartSpectra metrics are subject to Presage's model cards and limitations.
+The guided pace is not a physiological measurement. The app does not diagnose, recommend treatment, make medical decisions, infer stress or relaxation, or support covert monitoring. Valid real receipts disclose: **Ã¢â‚¬Å“Measured by SmartSpectra. Not a score. Not medical.Ã¢â‚¬Â** SmartSpectra metrics are subject to Presage's model cards and limitations.
 
-## What is testedâ€”and what is not
+## What is testedÃ¢â‚¬â€and what is not
 
 The complete automated suite passes 146 of 146 tests on the documented Windows toolchain when run with one worker (`npm test -- --maxWorkers=1`). Coverage includes SDK payload mapping, confidence/stability/range gating, timestamp deduplication, baseline and receipt calculations, pacer timing/interruption, camera preflight and cleanup, permission policy, session safety, aggregate export, onboarding, simulation isolation, and a fake real-source journey. TypeScript typecheck and the production build also pass.
 
 Simulation, fixtures, and fake sources are never presented as real sensing evidence. No real run has produced a verified full Before/After receipt on the current build.
 
-### Verified real SDK receipt evidence â€” November 16, 2026
+### Verified real SDK receipt evidence Ã¢â‚¬â€ November 16, 2026
 
-![Real SmartSpectra partial Reset Receipt showing session median 18.6, observed range 6.0â€“21.7, and eight receipt readings](docs/images/real-sdk-receipt-2026-11-16.png)
+![Real SmartSpectra partial Reset Receipt showing session median 18.6, observed range 6.0Ã¢â‚¬â€œ21.7, and eight receipt readings](docs/images/real-sdk-receipt-2026-11-16.png)
 
 | Result | Verified value |
 | --- | --- |
 | Source | Real SmartSpectra SDK |
 | Session duration | 106.081 seconds |
-| Negotiated camera / preflight | 640Ã—480 at 30 FPS / 30 FPS |
+| Negotiated camera / preflight | 640Ãƒâ€”480 at 30 FPS / 30 FPS |
 | Unique breathing-rate samples | 30 |
 | Gate-accepted samples | 9; confidence bins `5 / 16 / 5 / 4` |
 | Baseline | Completed by 45-second cap; receipt `Before n=1` |
 | Guided phase | Pacer started and ended; receipt `After n=7` |
 | SDK/session safety | No SDK errors; no camera stall; tracks stopped 57 ms after Stop |
-| Receipt | Partial: median 18.6, range 6.0â€“21.7 breaths/min, 8 phase-eligible readings |
+| Receipt | Partial: median 18.6, range 6.0Ã¢â‚¬â€œ21.7 breaths/min, 8 phase-eligible readings |
 
 The nine-versus-eight count is consistent with the current rules. The ninth accepted sample arrived after `pacer-end`: diagnostics count every gate-accepted unique sample, while the receipt includes only readings captured during the baseline or guided phase. This run therefore demonstrates real sensing and a real partial receipt, but **does not demonstrate a valid Before/After comparison** because the baseline had fewer than two accepted readings. See the [full sanitized evidence report](docs/evidence/REAL_SDK_SESSION_2026-11-16.md).
 
@@ -172,10 +180,10 @@ Private, gitignored sanitized diagnostics support the following limited claims:
 | R2 | A real Camo session started at `2026-11-14T02:10:48.623Z`, Stop was clicked at `02:12:04.654Z`, and media tracks stopped 34 ms later. | Earlier diagnostics did not carry the later self-identifying summary schema; this is lifecycle evidence, not a current-build receipt result. |
 | R3 | Real Camo session `6d47a40d-1a71-4062-b6e9-cf042affe72a` lasted 75.831 seconds, produced 11 unique rate samples and one accepted baseline reading, completed baseline by cap, never started the pacer, and released media. | No guided comparison or valid full receipt. |
 | R4 | Real Camo session `f415802a-61d1-4738-af9a-624a33fcb469` recorded accepted readings and a pacer interval, but its first pacer interval lasted about 13 minutes 24 seconds. | Earlier-build timing failure; it motivated later three-minute, suspend/lock, and interruption safeguards and is not valid receipt evidence. |
-| Built-in webcam | A verified current-build run lasted 106.038 seconds with negotiated 640Ã—480 at 30 FPS and a 30 FPS preflight, but produced zero chest samples and zero unique breathing-rate samples. | This single run does not show that built-in webcams generally fail. Framing is one possible explanation for the missing samples, but the diagnostics do not establish a cause. The run does not validate a Before/After comparison. |
+| Built-in webcam | A verified current-build run lasted 106.038 seconds with negotiated 640Ãƒâ€”480 at 30 FPS and a 30 FPS preflight, but produced zero chest samples and zero unique breathing-rate samples. | This single run does not show that built-in webcams generally fail. Framing is one possible explanation for the missing samples, but the diagnostics do not establish a cause. The run does not validate a Before/After comparison. |
 | R6 | Run `18431cfe-270c-4e15-8c93-1410888c30eb` used Camo, lasted 91.475 seconds, produced 20 unique rate samples and one accepted baseline reading, completed baseline by cap, never started the pacer, reported no SDK errors, and released media 34 ms after Stop. | No guided comparison or valid full receipt. |
-| Recent error-14 runs | Camo-over-Wi-Fi passed a recorded 30 FPS preflight, then SDK delivery fell to approximately 14â€“15 FPS and SmartSpectra emitted error 14; tracks were released. | Confirms sustained-low-frame-rate handling, not its root cause and not a successful receipt. Negotiated camera settings were verified by the subsequent November 16 run. |
-| November 16 current-build evidence | Run `403701e1-6e8d-486d-a56d-0f8ce021fba2`, session `761df35a-f09b-41c9-93b8-e79562894807`, negotiated 640Ã—480 at 30 FPS, completed baseline and pacer, produced 30 unique samples and a real partial receipt, and released media without SDK error or stall. | Receipt had `Before n=1` and `After n=7`; no valid Before/After comparison. |
+| Recent error-14 runs | Camo-over-Wi-Fi passed a recorded 30 FPS preflight, then SDK delivery fell to approximately 14Ã¢â‚¬â€œ15 FPS and SmartSpectra emitted error 14; tracks were released. | Confirms sustained-low-frame-rate handling, not its root cause and not a successful receipt. Negotiated camera settings were verified by the subsequent November 16 run. |
+| November 16 current-build evidence | Run `403701e1-6e8d-486d-a56d-0f8ce021fba2`, session `761df35a-f09b-41c9-93b8-e79562894807`, negotiated 640Ãƒâ€”480 at 30 FPS, completed baseline and pacer, produced 30 unique samples and a real partial receipt, and released media without SDK error or stall. | Receipt had `Before n=1` and `After n=7`; no valid Before/After comparison. |
 
 ## Known limitations
 
@@ -189,15 +197,15 @@ Private, gitignored sanitized diagnostics support the following limited claims:
 
 ## Challenge alignment
 
-The first Git commit is dated November 11, 2026, inside the November 4â€“22 challenge window. The repository integrates the real Presage SmartSpectra SDK and contains private, gitignored evidence of real sessions. Submission readinessâ€”including the still-placeholder demo-video URL, DEV-post URL, and public-repository URL, plus entrant status and judge instructionsâ€”is tracked in [Submission checklist](docs/SUBMISSION_CHECKLIST.md).
+The first Git commit is dated November 11, 2026, inside the November 4Ã¢â‚¬â€œ22 challenge window. The repository integrates the real Presage SmartSpectra SDK and contains private, gitignored evidence of real sessions. Submission readinessÃ¢â‚¬â€including the still-placeholder demo-video URL, DEV-post URL, and public-repository URL, plus entrant status and judge instructionsÃ¢â‚¬â€is tracked in [Submission checklist](docs/SUBMISSION_CHECKLIST.md).
 
 ## Project map and license
 
-- `src/main` â€” Electron lifecycle, SDK IPC binding, session safety, authorized diagnostics.
-- `src/preload` â€” constrained application bridge and official SDK preload bridge.
-- `src/renderer/src/signals` â€” real and simulation sources, mapping, gating, camera cleanup.
-- `src/renderer/src/features` â€” onboarding, recorder, pacer, receipt, and PNG export.
-- `docs` â€” product, privacy, SDK, runbook, claims, and submission evidence.
+- `src/main` Ã¢â‚¬â€ Electron lifecycle, SDK IPC binding, session safety, authorized diagnostics.
+- `src/preload` Ã¢â‚¬â€ constrained application bridge and official SDK preload bridge.
+- `src/renderer/src/signals` Ã¢â‚¬â€ real and simulation sources, mapping, gating, camera cleanup.
+- `src/renderer/src/features` Ã¢â‚¬â€ onboarding, recorder, pacer, receipt, and PNG export.
+- `docs` Ã¢â‚¬â€ product, privacy, SDK, runbook, claims, and submission evidence.
 
 Detailed evidence and operating documents:
 
