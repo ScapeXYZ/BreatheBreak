@@ -8,15 +8,17 @@ Reset Receipt is a Windows desktop app powered by Presage SmartSpectra. It guide
 
 ## Download for Windows
 
-**[View Reset Receipt v0.1.0 on GitHub Releases](https://github.com/ScapeXYZ/reset-receipt/releases/tag/v0.1.0)**
+**[Download Reset Receipt v0.1.0 for Windows x64](https://github.com/ScapeXYZ/reset-receipt/releases/download/v0.1.0/Reset-Receipt-0.1.0-Setup-x64.exe)**
+
+[View the v0.1.0 GitHub Release](https://github.com/ScapeXYZ/reset-receipt/releases/tag/v0.1.0) · [Download SHA256SUMS.txt](https://github.com/ScapeXYZ/reset-receipt/releases/download/v0.1.0/SHA256SUMS.txt)
 
 - Version: **v0.1.0**
 - Platform: **Windows x64**
-- Checksum: available as `SHA256SUMS.txt` on the release page
+- Checksum: [SHA256SUMS.txt](https://github.com/ScapeXYZ/reset-receipt/releases/download/v0.1.0/SHA256SUMS.txt)
 - Signing: the installer is currently **unsigned**, so Windows may show an unknown-publisher warning
 - Simulation needs no camera or API key; real measurements require your own Presage API key
 
-The direct installer and checksum links will be added only after the public release assets have been uploaded and verified.
+Installer and checksum links above were verified against the published v0.1.0 release assets.
 
 ## Preview
 
