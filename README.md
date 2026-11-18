@@ -2,128 +2,103 @@
 
 *A guided breathing break with an honest measurement receipt.*
 
-Reset Receipt is a Windows desktop app powered by Presage SmartSpectra. It guides you through a short breathing exercise and shows what the camera-based measurement actually observed—even when the evidence is incomplete.
+Reset Receipt is a Windows desktop app powered by Presage SmartSpectra. It guides a short breathing exercise and reports what the camera-based measurement actually observed—even when the evidence is incomplete.
 
 **Windows · Electron · SmartSpectra SDK · v0.1.0**
 
-## Download for Windows
+## 1. Download for Windows
 
 **[Download Reset Receipt v0.1.0 for Windows x64](https://github.com/ScapeXYZ/reset-receipt/releases/download/v0.1.0/Reset-Receipt-0.1.0-Setup-x64.exe)**
 
-[View the v0.1.0 GitHub Release](https://github.com/ScapeXYZ/reset-receipt/releases/tag/v0.1.0) · [Download SHA256SUMS.txt](https://github.com/ScapeXYZ/reset-receipt/releases/download/v0.1.0/SHA256SUMS.txt)
+[View the GitHub Release](https://github.com/ScapeXYZ/reset-receipt/releases/tag/v0.1.0) · [Download SHA256SUMS.txt](https://github.com/ScapeXYZ/reset-receipt/releases/download/v0.1.0/SHA256SUMS.txt)
 
-- Version: **v0.1.0**
-- Platform: **Windows x64**
-- Checksum: [SHA256SUMS.txt](https://github.com/ScapeXYZ/reset-receipt/releases/download/v0.1.0/SHA256SUMS.txt)
-- Signing: the installer is currently **unsigned**, so Windows may show an unknown-publisher warning
-- Simulation needs no camera or API key; real measurements require your own Presage API key
+- Version: **v0.1.0** (pre-release)
+- Requirement: **Windows x64**
+- Installer SHA-256: `82edd4dd20b9fddea9d2224db8da14f2f8d9d92a9247f6d98d93e804bf15d363`
+- The installer is **unsigned**; Windows may display an unknown-publisher warning. Do not bypass organizational security policy.
 
-Installer and checksum links above were verified against the published v0.1.0 release assets.
-
-## Preview
+## 2. Preview
 
 ![Reset Receipt result](docs/screenshots/reset-receipt-result.png)
 
-*Actual Reset Receipt interface captured from the credential-free simulation build. The on-screen **SIMULATION — NOT REAL** label identifies the displayed values as synthetic, not real measurements.*
+*Genuine rendered Reset Receipt interface from the credential-free simulation build. The visible **SIMULATION — NOT REAL** label means the values are synthetic.*
 
-## What Reset Receipt does
+## 3. What Reset Receipt does
 
-Reset Receipt combines a short guided breathing exercise with contactless breathing-rate measurement. After a session, it reports only what the accepted measurements support. If there is not enough reliable data for a comparison, the receipt is partial or unavailable rather than invented.
+Reset Receipt combines a short guided breathing exercise with contactless breathing-rate measurement. It creates a receipt only from accepted SmartSpectra readings. When the evidence cannot support a comparison, it returns a partial, insufficient, or interrupted result instead of inventing a change.
 
-It is intended for adults who want a transparent wellness break. It is not a medical device and does not diagnose stress, prove relaxation, recommend treatment, or establish health improvement.
+It is a non-medical wellness prototype. It does not measure pulse, diagnose stress, prove relaxation, recommend treatment, or establish health improvement.
 
-## Main features
+## 4. How it works
 
-- Adaptive natural-breathing baseline followed by an optional 45-second guided pacer.
-- Contactless breathing-rate measurement through Presage SmartSpectra.
-- Explicit camera consent and user-selected camera access.
-- Complete, partial, and unavailable receipts based on accepted samples.
-- Plain-English receipt explanations without medical or effectiveness claims.
-- Credential-free, camera-free simulation clearly labelled **SIMULATION — NOT REAL**.
-- Runtime Bring Your Own Key (BYOK); no developer credential is bundled.
-- Aggregate-only PNG export for eligible receipts.
-- Local packaged operation using `file://`, with no development server or localhost.
+1. Choose **Simulation** or **Real measurement**.
+2. For real measurement, enter your own Presage API key, choose a camera, review the consent disclosure, and start the session.
+3. Hold still in stable, even lighting while the app collects a natural-breathing baseline.
+4. Start the optional 45-second guided pacer when ready.
+5. Stop the session and read the resulting evidence receipt.
 
-## How it works
+The pacer is guidance, not a measurement. A visible three-minute maximum and cleanup on stop, lock, suspension, camera failure, or sustained SDK frame loss protect the session boundary.
 
-1. Review the in-app guide and choose simulation or real measurement.
-2. For a real session, enter your Presage API key, choose a camera, and provide explicit consent.
-3. Start the session and breathe naturally while Reset Receipt collects a baseline.
-4. Start the guided pacer manually and follow its inhale/exhale prompts.
-5. Stop the session. Reset Receipt releases the camera and generates a receipt from accepted readings.
-6. Review the result status and sample quality before interpreting the numbers.
+## 5. Installation and first use
 
-The pacer is an instruction, not a measurement. Sessions have a visible three-minute maximum, and suspend, lock, camera failure, or sustained SDK frame loss triggers cleanup.
+1. Download the installer and `SHA256SUMS.txt` from the v0.1.0 release.
+2. In PowerShell, run `Get-FileHash .\Reset-Receipt-0.1.0-Setup-x64.exe -Algorithm SHA256` and compare it with the checksum file.
+3. Install and launch **Reset Receipt** from the Start menu or desktop shortcut.
+4. Use simulation for a credential-free tour, or configure BYOK for a real measurement.
 
-## How to understand your receipt
+The installed app runs locally from `file://`; it does not require a development server or localhost.
 
-- **BEFORE:** breathing rate measured before the guided exercise.
-- **AFTER:** breathing rate measured after the guided exercise.
-- **CHANGE:** `AFTER − BEFORE`, in breaths per minute.
-- **Sample quality:** whether enough valid measurements were collected.
-- **Result status:** **Complete**, **Partial**, or **Unavailable**.
+## 6. Bring your own key (BYOK)
 
-For example, BEFORE 12 and AFTER 10 means the measured breathing rate decreased by 2 breaths per minute. It does not prove reduced stress, medical improvement, or treatment effectiveness, and a lower breathing rate is not always better.
+Real SmartSpectra sessions require a user-provided Presage API key and available Presage credits. Enter the key only in the password-masked in-app field. Reset Receipt holds it in renderer memory for the current run and passes it to SmartSpectra for authentication; it does not write the key to local storage, files, logs, diagnostics, receipts, exports, or Reset Receipt IPC. Closing the app clears it.
 
-A comparison requires at least two accepted readings in each phase. Samples must have a valid SDK timestamp, confidence of at least 45, stable status, and a value from 4 to 45 breaths per minute. If those requirements are not met, Reset Receipt shows a partial or unavailable result and does not fabricate BEFORE, AFTER, or CHANGE.
+Never put a key in `.env`, source code, screenshots, issue reports, or commits.
 
-## Installation and first-time setup
+## 7. Simulation
 
-1. Download `Reset-Receipt-0.1.0-Setup-x64.exe` and `SHA256SUMS.txt` from the v0.1.0 release.
-2. In PowerShell, run:
+Simulation needs no API key and does not acquire a camera or consume Presage credits. Its signals and receipts are synthetic and are visibly labeled **SIMULATION — NOT REAL**. Use it to learn the flow or demonstrate the interface, never as sensing evidence.
 
-   ```powershell
-   Get-FileHash .\Reset-Receipt-0.1.0-Setup-x64.exe -Algorithm SHA256
-   ```
+## 8. Understanding receipts
 
-3. Compare the output with `SHA256SUMS.txt`.
-4. Run the installer. Because it is unsigned, Windows may display an unknown-publisher warning; do not bypass organizational security policy.
-5. Launch **Reset Receipt** from the Start menu or desktop shortcut.
-6. Choose simulation for a credential-free tour, or configure BYOK for real measurement.
+Reset Receipt uses four application receipt kinds:
 
-The installed app launches without PowerShell, localhost, or a development server. Uninstall it from **Settings → Apps → Installed apps → Reset Receipt → Uninstall**. See [Windows installation](docs/INSTALLATION.md).
+- **Full:** at least two accepted readings in both baseline and guided phases. It can show Before, After, and Change (`After − Before`).
+- **Partial:** at least two accepted readings overall, but one phase is too short for a comparison. It shows session aggregates and no invented Before/After change.
+- **Insufficient:** fewer than two accepted readings overall. No receipt comparison is issued.
+- **Interrupted:** a qualifying pacer timing interruption invalidates the comparison. No measured receipt or PNG is issued.
 
-## BYOK configuration
+An accepted breathing-rate reading needs a valid SDK timestamp, confidence of at least 45, stable SDK status, and a value from 4 to 45 breaths/min. A lower value is not inherently better and no result proves a wellness or medical outcome.
 
-Real SmartSpectra sessions use your own Presage API key:
+## 9. Camera consent and handling
 
-1. Obtain and manage a key through your Presage account.
-2. Open **Start a reset** and enter it in the password-masked **SmartSpectra API key** field.
-3. Select a camera, review the disclosure, provide consent, and start the session.
+Real mode requires a selected camera, an explicit consent checkbox, and the user’s **Start session** action. Camera capture starts only on that explicit path. Stop and teardown stop media tracks; suspend and lock request a forced stop. Simulation denies camera permission and does not enumerate or acquire cameras.
 
-The key is held only in renderer memory for the current app run and passed directly to the SmartSpectra SDK for authentication. Reset Receipt does not send it through app-defined IPC or write it to local storage, files, logs, diagnostics, receipts, or exports. Closing the application clears the in-memory value. Never place a key in `.env`, source code, screenshots, issue reports, or commits.
+The app does not implement video or frame recording. It supplies a live `MediaStream` to SmartSpectra only while a user-started real session is active.
 
-## Simulation versus real measurements
+## 10. Privacy, storage, sharing, retention, and deletion
 
-| Simulation | Real measurement |
-| --- | --- |
-| No API key | User-provided Presage API key |
-| No camera access | Explicit consent and camera permission |
-| Synthetic signals | SmartSpectra camera-derived signals |
-| No Presage credits | May consume Presage credits |
-| Always labelled **SIMULATION — NOT REAL** | Receipt identifies SmartSpectra measurement |
+Reset Receipt stores only the guide-seen flag and selected camera ID in local storage. During an explicitly authorized live test, it can write sanitized, gitignored aggregate diagnostics; these contain no API key, raw frame, raw physiological value, or receipt export data. Diagnostics are not automatically deleted: the operator must remove them when no longer needed. Local profile data can be cleared by the user or Electron profile management.
 
-Simulation is useful for exploring the workflow and testing UI behavior. Its numbers are illustrative and must never be presented as real sensing evidence.
+Reset Receipt does not share its own recorded video or raw frames because it does not record them. SmartSpectra authentication and service processing are governed by Presage. The SDK is configured with telemetry disabled, but that is not a promise of zero network traffic; Presage may process credentials, device/account information, usage records, and service data under its current policies. Deleting local app data does not delete Presage-held information. The app does not use SmartSpectra Insights or another optional AI service.
 
-## Privacy and camera handling
+Read [Privacy and data handling](docs/PRIVACY.md) before a real session.
 
-Reset Receipt does not implement video or frame recording. Camera frames and raw session samples are processed in memory, bounded during the session, and released or cleared during cleanup. The app stores only the guide-seen flag and selected camera ID in local storage; it does not store the API key.
-
-Camera permission is restricted to video access from the application’s own renderer. Popups and renderer navigation are denied, context isolation and sandboxing are enabled, production DevTools are disabled, and no arbitrary credential IPC is exposed.
-
-SmartSpectra still authenticates with Presage. Presage-side processing, retention, and network behavior are governed by Presage and have not been independently verified by this project. Read [Privacy and data handling](docs/PRIVACY.md).
-
-## Supported platforms and requirements
+## 11. Platforms and requirements
 
 - Verified platform: Windows x64.
-- Camera for real measurement; no camera for simulation.
-- Presage account, API key, and available credits for real measurement.
-- Camera delivery of at least 25 FPS for SmartSpectra; the app rejects a preflight below 24 FPS.
-- Recommended framing: head, shoulders, and upper chest visible with stable, even lighting.
+- Real measurement: compatible camera, stable lighting, Presage account, user API key, and available credits.
+- Simulation: no camera and no API key.
+- SmartSpectra preflight requires at least 24 FPS; 25 FPS or higher is recommended.
 
 macOS, Linux, Windows on ARM, code signing, and automatic updates are not supported by v0.1.0.
 
-## Development setup and reproduction instructions
+## 12. Verified real-hardware evidence
+
+One authorized packaged real-SDK session verified camera access, SmartSpectra callbacks, accepted readings, a completed manual pacer, safe camera cleanup, and a **partial** receipt. It did not produce a valid full Before/After comparison: the phase-aware receipt contained one baseline reading and seven guided readings.
+
+The separate release-acceptance session reported 2,993 delivered frame callbacks, 21 unique rate samples, 147 chest-bearing metric callbacks, and five accepted post-pacer readings. These are different counters: raw frame callbacks are not rate samples, and chest-bearing callbacks are not automatically accepted measurements. See [real-session evidence](docs/evidence/REAL_SDK_SESSION_2026-11-16.md) and [SDK integration](docs/SDK_INTEGRATION.md).
+
+## 13. Development setup and reproduction
 
 The verified release toolchain used Node.js 24.14.1 and npm 11.18.0 on Windows.
 
@@ -134,70 +109,32 @@ npm install
 npm run typecheck
 npm test -- --maxWorkers=1
 npm run build
-```
-
-Run the credential-free source simulation:
-
-```powershell
 npm run dev:sim
 ```
 
-Run the development application for an authorized real session:
+Use `npm run dev` only for an authorized real session. Do not start real SDK sessions without camera-use and Presage-credit authorization.
 
-```powershell
-npm run dev
-```
+## 14. Tests and release verification
 
-Enter the API key only in the in-app BYOK field. To reproduce Windows artifacts and checks:
+The v0.1.0 acceptance run recorded 10 of 10 public-release gates as PASS, including typecheck, 147 automated tests, production build, Gitleaks scans, credential-free packaged simulation, installed-app launch, one authorized packaged real SDK session, camera cleanup, installer/uninstaller testing, and security review.
 
-```powershell
-npm run dist:win
-npm run inspect:release
-npm run checksum:release
-npm run verify:bundle-secrets
-npm run smoke:packaged
-```
+The unsigned installer, checksum, and release links were verified before publication. See [Windows release acceptance](docs/RELEASE_ACCEPTANCE.md).
 
-Do not start a real SDK session unless camera use and Presage credit consumption are authorized.
-
-## Tests and release verification
-
-The v0.1.0 acceptance run verified all 10 public-release gates, including:
-
-- TypeScript typecheck, 147 automated tests, and production build.
-- Full Git-history and compiled-output Gitleaks scans.
-- Production credential-canary and installer-content inspection.
-- Credential-free packaged simulation.
-- Installed-app launch without localhost or a terminal.
-- One authorized packaged real-SDK BYOK session, camera access, measurement reception, and camera cleanup.
-- Official NSIS installation and uninstallation.
-- Electron IPC, CSP, navigation, and permission review.
-- README, privacy documentation, checksum, and download instructions.
-
-See [Windows release acceptance](docs/RELEASE_ACCEPTANCE.md) for evidence and boundaries.
-
-## Known limitations
+## 15. Known limitations
 
 - The v0.1.0 installer is unsigned.
-- Users must obtain, protect, and revoke their own Presage API keys.
-- No full real-SDK BEFORE/AFTER receipt has been verified; authorized real runs produced partial results.
-- Camera preflight cannot guarantee sustained SDK processing performance.
-- Presage-side data handling has not been independently audited by this project.
-- The optional abdomen signal is not required for the receipt.
-- This prototype has not completed a formal accessibility, clinical, or regulatory review.
+- A full real Before/After receipt has not been verified on the current build.
+- A camera preflight does not guarantee sustained SDK performance.
+- SmartSpectra service behavior and retention are governed by Presage and have not been independently audited by this project.
+- This prototype has not completed formal accessibility, clinical, or regulatory review.
 
-## Documentation
+## 16. Documentation and Presage challenge alignment
 
 - [Windows installation](docs/INSTALLATION.md)
 - [Privacy and data handling](docs/PRIVACY.md)
 - [SDK integration](docs/SDK_INTEGRATION.md)
 - [Claim-to-evidence register](docs/CLAIMS.md)
 - [Release acceptance](docs/RELEASE_ACCEPTANCE.md)
-- [Live-test runbook](docs/R1-LIVE-TEST-RUNBOOK.md)
 - [MIT License](LICENSE)
 
-## Presage hackathon information
-
-Reset Receipt was created for the Presage SmartSpectra challenge as a consent-first example of honest physiological-sensing UX. It integrates the real SmartSpectra SDK while keeping simulation unmistakably separate from measurement evidence. The project emphasizes transparent sample-quality gates, non-medical language, runtime BYOK, and explicit camera control.
-
-Submission details and challenge evidence are tracked in the [submission checklist](docs/SUBMISSION_CHECKLIST.md).
+Reset Receipt was created for the Presage SmartSpectra challenge as a consent-first demonstration of honest sensing UX: runtime BYOK, explicit camera control, clearly separated simulation, and receipt states that reflect incomplete evidence rather than overclaiming.
