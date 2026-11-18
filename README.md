@@ -83,6 +83,25 @@ Reset Receipt uses four application receipt kinds:
 
 An accepted breathing-rate reading needs a valid SDK timestamp, confidence of at least 45, stable SDK status, and a value from 4 to 45 breaths/min. A lower value is not inherently better and no result proves a wellness or medical outcome.
 
+### Receipt field guide
+
+| Field | What it means |
+| --- | --- |
+| **Session duration** | The elapsed session time shown when the receipt was created. |
+| **Before** | For a full receipt, the median of accepted baseline breathing-rate readings. |
+| **After** | For a full receipt, the median of up to the last three accepted guided-phase readings. |
+| **Change** | `After − Before`, in breaths/min, shown only for a full receipt. It is a measurement comparison, not a wellness or medical outcome. |
+| **Session median** | For a partial receipt, the median of all accepted receipt readings. It is not a Before/After comparison. |
+| **Observed range** | For a partial receipt, the lowest to highest accepted receipt reading. |
+| **Accepted readings** | For a partial receipt, the number of accepted receipt readings used for its aggregate fields. |
+| **Result status** | **Complete** for a full receipt, **Partial** for a partial receipt, and **Unavailable** for insufficient or interrupted receipts. |
+| **Sample quality** | Whether accepted readings were sufficient in both phases for a comparison. |
+| **Readings that met the SDK threshold** | Accepted unique breathing-rate readings out of all unique timestamped rate readings observed by the app. |
+| **Guide pace** | The selected inhale/exhale timing when the guide completed; otherwise **Not completed**. |
+| **Before n / After n** | Accepted receipt readings assigned to the baseline and guided phases. |
+| **Measured breathing trace** | A decimated chest-movement trace from the session. If no stable trace is available, the app says so. |
+| **SIMULATION, NOT REAL** | Marks synthetic simulation data. Real receipts instead disclose that they were measured by SmartSpectra and are not a score or medical result. |
+
 ## 9. Camera consent and handling
 
 Real mode requires a selected camera, an explicit consent checkbox, and the user’s **Start session** action. Camera capture starts only on that explicit path. Stop and teardown stop media tracks; suspend and lock request a forced stop. Simulation denies camera permission and does not enumerate or acquire cameras.
