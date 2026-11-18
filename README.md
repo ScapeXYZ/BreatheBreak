@@ -39,12 +39,26 @@ It is a non-medical wellness prototype. It does not measure pulse, diagnose stre
 
 The pacer is guidance, not a measurement. A visible three-minute maximum and cleanup on stop, lock, suspension, camera failure, or sustained SDK frame loss protect the session boundary.
 
-## 5. Installation and first use
+## 5. Install Reset Receipt on Windows
 
-1. Download the installer and `SHA256SUMS.txt` from the v0.1.0 release.
-2. In PowerShell, run `Get-FileHash .\Reset-Receipt-0.1.0-Setup-x64.exe -Algorithm SHA256` and compare it with the checksum file.
-3. Install and launch **Reset Receipt** from the Start menu or desktop shortcut.
-4. Use simulation for a credential-free tour, or configure BYOK for a real measurement.
+1. Open the [Reset Receipt v0.1.0 pre-release](https://github.com/ScapeXYZ/reset-receipt/releases/tag/v0.1.0).
+2. Under **Assets**, download `Reset-Receipt-0.1.0-Setup-x64.exe` for Windows x64. You can also download `SHA256SUMS.txt` from the same release.
+3. Optionally verify the installer before running it. In PowerShell, open the folder that contains the download and run:
+
+   ```powershell
+   Get-FileHash .\Reset-Receipt-0.1.0-Setup-x64.exe -Algorithm SHA256
+   ```
+
+   Compare the result with the installer entry in `SHA256SUMS.txt`. The published SHA-256 is `82edd4dd20b9fddea9d2224db8da14f2f8d9d92a9247f6d98d93e804bf15d363`.
+4. Run the installer. When asked, choose **Only for me** to install for your Windows user account.
+5. The installer is unsigned. Windows may show an **Unknown Publisher** or SmartScreen warning. Verify that the download came from the release above and that its checksum matches before deciding whether to continue. Do not bypass a warning without that verification.
+6. Finish the installation, then launch **Reset Receipt** from the Start menu or desktop shortcut.
+7. Choose **Simulation** for a credential-free, camera-free tour. Simulation needs no API key or camera and is labeled **SIMULATION — NOT REAL**.
+8. Choose **Real SmartSpectra** only when you have your own Presage API key and are ready to give explicit camera consent. Real sessions may use Presage credits.
+
+The receipt can be **full**, **partial**, **insufficient**, or **interrupted**. A full receipt has enough accepted measurements for a Before/After comparison. Partial, insufficient, and interrupted states do not invent a comparison when evidence is incomplete or the pacer was interrupted.
+
+To uninstall, open **Settings > Apps > Installed apps**, select **Reset Receipt**, and choose **Uninstall**. After closing the app and uninstalling it, `%APPDATA%\Reset Receipt` may remain. You can delete that folder manually if you want to remove remaining application data.
 
 The installed app runs locally from `file://`; it does not require a development server or localhost.
 
