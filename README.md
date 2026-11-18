@@ -129,6 +129,11 @@ macOS, Linux, Windows on ARM, code signing, and automatic updates are not suppor
 
 One authorized packaged real-SDK session verified camera access, SmartSpectra callbacks, accepted readings, a completed manual pacer, safe camera cleanup, and a **partial** receipt. It did not produce a valid full Before/After comparison: the phase-aware receipt contained one baseline reading and seven guided readings.
 
+| Evidence | What it supports | Date boundary |
+| --- | --- | --- |
+| [Sanitized real-session evidence](docs/evidence/REAL_SDK_SESSION_2026-11-16.md) | A real SmartSpectra partial receipt with one baseline and seven guided receipt readings. | Measurement session date: 2026-11-16. |
+| [OBS real partial-receipt capture](docs/evidence/OBS_REAL_PARTIAL_RECEIPT_CAPTURE_2026-11-18.md) | Owner-confirmed demo capture showing a Partial receipt: median 9.9 breaths/min, range 8.1–11.7, and two accepted readings. | Recording captured 2026-11-18; the underlying measurement-session date is not established. |
+
 The separate release-acceptance session reported 2,993 delivered frame callbacks, 21 unique rate samples, 147 chest-bearing metric callbacks, and five accepted post-pacer readings. These are different counters: raw frame callbacks are not rate samples, and chest-bearing callbacks are not automatically accepted measurements. See [real-session evidence](docs/evidence/REAL_SDK_SESSION_2026-11-16.md) and [SDK integration](docs/SDK_INTEGRATION.md).
 
 ## 13. Development setup and reproduction
