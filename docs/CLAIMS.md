@@ -23,9 +23,9 @@ This register covers the substantive claims in `README.md` and `docs/PRIVACY.md`
 | Reset Receipt does not call LLM Insights. | Repository search; `signals/smartspectra.ts`; no `requestInsight` call | Verified for current tracked source. |
 | Simulation-only mode needs no key/camera and isolates SDK/camera before initialization. | `scripts/dev-sim.mjs`; `electron.vite.config.ts`; `src/preload/simulation.ts`; `simulationIsolation.test.ts` | Verified offline. |
 | Simulation is persistently labelled and is not real sensing evidence. | `App.tsx`; `SimulationReceiptProfiles.tsx`; `exportReceipt.ts` | Verified by source. |
-| No installer or signed distributable is provided. | `package.json`; repository file inventory | Verified locally. |
-| Real mode reads the user's key from `.env` through `VITE_SMARTSPECTRA_API_KEY`. | `.env.example`; `signals/smartspectra.ts`; Vite configuration | Verified by source. |
-| The key is embedded in the renderer bundle and is extractable from a packaged desktop app. | Renderer use of `import.meta.env.VITE_SMARTSPECTRA_API_KEY`; Vite compile-time environment semantics | Verified design limitation; no packaged artifact was inspected in this task. |
+| A local unsigned Windows NSIS installer can be reproduced. | `package.json`; `release/Reset-Receipt-0.1.0-Setup-x64.exe`; `docs/RELEASE_ACCEPTANCE.md` | Build and content inspection verified locally; interactive installation and signing remain unverified. |
+| Real mode accepts the user's key at runtime and keeps it only in renderer memory. | `App.tsx`; `signals/smartspectra.ts`; `simulationIsolation.test.ts` | Verified by source/test. |
+| Production output contains no configured developer key. | `verify-production-bundle.mjs`; compiled-output verification | Must be re-verified for every release build. |
 | A rate must have a valid timestamp, confidence ≥45, `stable=true`, and value 4–45. | `signals/gating.ts`; `gating.test.ts`; `smartspectraMapping.test.ts` | Verified offline. |
 | Samples are deduplicated by SDK timestamp. | `signals/gating.ts` (`UniqueRateGateCounter`) | Verified offline. |
 | No fixed-clock warm-up rejection remains. | `signals/gating.ts` | Verified by production gate source. |
@@ -66,4 +66,4 @@ This register covers the substantive claims in `README.md` and `docs/PRIVACY.md`
 - Presage's actual storage, retention, deletion, correlation, security, and subprocessors beyond its published documentation.
 - File-system behavior across every crash, power loss, forced termination, or supported Windows configuration.
 - Public accessibility and clean-clone success of the configured GitHub repository.
-- Installer behavior, because no installer exists.
+- Interactive installer and uninstaller behavior; the NSIS artifact was built and inspected but not executed.

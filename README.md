@@ -1,218 +1,201 @@
 # Reset Receipt
 
-## The problem
+*A guided breathing break with an honest measurement receipt.*
 
-Most breathing exercises tell users when to inhale and exhale, but completing an exercise does not prove that their breathing changed. Camera-based measurement can also produce missing or unreliable readings.
+Reset Receipt is a Windows desktop app powered by Presage SmartSpectra. It guides you through a short breathing exercise and shows what the camera-based measurement actually observed—even when the evidence is incomplete.
 
-## Our solution
+**Windows · Electron · SmartSpectra SDK · v0.1.0**
 
-Reset Receipt is a consent-first desktop breathing-break application powered by Presage SmartSpectra. It combines contactless breathing-rate measurement, a short guided breathing exercise, and a measurement-based session receipt.
+## Download for Windows
 
-Instead of assuming that every session was successful, Reset Receipt checks the quality and availability of actual measurements. When the evidence is insufficient, the application says so.
+**[View Reset Receipt v0.1.0 on GitHub Releases](https://github.com/ScapeXYZ/reset-receipt/releases/tag/v0.1.0)**
 
-## Why it matters
+- Version: **v0.1.0**
+- Platform: **Windows x64**
+- Checksum: available as `SHA256SUMS.txt` on the release page
+- Signing: the installer is currently **unsigned**, so Windows may show an unknown-publisher warning
+- Simulation needs no camera or API key; real measurements require your own Presage API key
 
-Reset Receipt demonstrates how physiological sensing can support transparent, everyday wellness experiences without presenting unreliable measurements as facts or making unsupported medical claims.
+The direct installer and checksum links will be added only after the public release assets have been uploaded and verified.
 
-**Reset Receipt: Take a break. See what was measured. Know what wasn't.**
+## Preview
 
-### Who is Reset Receipt for?
+![Reset Receipt result](docs/screenshots/reset-receipt-result.png)
 
-Office workers, students, and anyone needing a short, guided breathing break.
+*Actual Reset Receipt interface captured from the credential-free simulation build. The on-screen **SIMULATION — NOT REAL** label identifies the displayed values as synthetic, not real measurements.*
 
-### What makes Reset Receipt different
+## What Reset Receipt does
 
-Unlike a basic breathing timer, Reset Receipt uses live Presage SmartSpectra measurements and only reports breathing changes when reliable readings support them. No invented results, no medical claims.
+Reset Receipt combines a short guided breathing exercise with contactless breathing-rate measurement. After a session, it reports only what the accepted measurements support. If there is not enough reliable data for a comparison, the receipt is partial or unavailable rather than invented.
 
-## Overview
+It is intended for adults who want a transparent wellness break. It is not a medical device and does not diagnose stress, prove relaxation, recommend treatment, or establish health improvement.
 
-Reset Receipt is a consent-first Electron breathing visualization built with SmartSpectra SDK 3.5.0. It measures an adaptive natural-breathing baseline, offers a manually started 45-second guided pacer, and produces a receipt only from readings that pass the SDK-derived acceptance gate. It is a non-medical wellness prototype, not a diagnostic or treatment tool.
+## Main features
 
-## Problem
-
-Camera-based breathing experiences can blur measured signals, guided instructions, and inferred outcomes. Reset Receipt keeps them separate: the chest trace and breathing rate are measurements, the pacer is an instruction, and the receipt reports observations without scoring the user or claiming improvement.
+- Adaptive natural-breathing baseline followed by an optional 45-second guided pacer.
+- Contactless breathing-rate measurement through Presage SmartSpectra.
+- Explicit camera consent and user-selected camera access.
+- Complete, partial, and unavailable receipts based on accepted samples.
+- Plain-English receipt explanations without medical or effectiveness claims.
+- Credential-free, camera-free simulation clearly labelled **SIMULATION — NOT REAL**.
+- Runtime Bring Your Own Key (BYOK); no developer credential is bundled.
+- Aggregate-only PNG export for eligible receipts.
+- Local packaged operation using `file://`, with no development server or localhost.
 
 ## How it works
 
-1. The user reviews the three-step guide.
-2. In real mode, the user selects a camera, checks explicit consent, and presses **Start session**.
-3. The baseline completes after three accepted readings or unlocks at 45 seconds.
-4. The user may start the 45-second guided pacer; it never starts automatically.
-5. Stop releases the source, clears raw session buffers after creating the recap, and shows a full, partial, insufficient, or interrupted receipt.
-6. Full and partial receipts can be exported as aggregate-only PNG files. Insufficient and interrupted receipts cannot be exported.
+1. Review the in-app guide and choose simulation or real measurement.
+2. For a real session, enter your Presage API key, choose a camera, and provide explicit consent.
+3. Start the session and breathe naturally while Reset Receipt collects a baseline.
+4. Start the guided pacer manually and follow its inhale/exhale prompts.
+5. Stop the session. Reset Receipt releases the camera and generates a receipt from accepted readings.
+6. Review the result status and sample quality before interpreting the numbers.
 
-Every session has a visible three-minute maximum. Suspend or lock requests an immediate stop. The first-run guide, four receipt states, aggregate-only PNG export, reliability counts, and insufficient-data handling are implemented.
+The pacer is an instruction, not a measurement. Sessions have a visible three-minute maximum, and suspend, lock, camera failure, or sustained SDK frame loss triggers cleanup.
 
-## SmartSpectra integration
+## How to understand your receipt
 
-The Electron main process binds the official SDK IPC bridge in `src/main/index.ts`. `src/preload/index.ts` loads the official SDK preload bridge, and `src/renderer/src/signals/smartspectra.ts` owns camera acquisition, SDK construction, metric delivery, bounded reconnection, and cleanup. Mapping and acceptance live in `smartspectraMapping.ts` and `gating.ts`.
+- **BEFORE:** breathing rate measured before the guided exercise.
+- **AFTER:** breathing rate measured after the guided exercise.
+- **CHANGE:** `AFTER − BEFORE`, in breaths per minute.
+- **Sample quality:** whether enough valid measurements were collected.
+- **Result status:** **Complete**, **Partial**, or **Unavailable**.
 
-The app requests chest breathing, breathing rate, and optional abdomen breathing. It does not request LLM Insights. See [SDK integration](docs/SDK_INTEGRATION.md) for the complete wiring and file map.
+For example, BEFORE 12 and AFTER 10 means the measured breathing rate decreased by 2 breaths per minute. It does not prove reduced stress, medical improvement, or treatment effectiveness, and a lower breathing rate is not always better.
 
-## Prerequisites and installation
+A comparison requires at least two accepted readings in each phase. Samples must have a valid SDK timestamp, confidence of at least 45, stable status, and a value from 4 to 45 breaths per minute. If those requirements are not met, Reset Receipt shows a partial or unavailable result and does not fabricate BEFORE, AFTER, or CHANGE.
 
-Reset Receipt is developed and verified on Windows. The reproducible toolchain used for this revision is Node.js 24.14.1 and npm 11.18.0. `package.json` and `package-lock.json` do not declare a broader Node.js `engines` range, so other versions are not claimed as verified.
+## Installation and first-time setup
+
+1. Download `Reset-Receipt-0.1.0-Setup-x64.exe` and `SHA256SUMS.txt` from the v0.1.0 release.
+2. In PowerShell, run:
+
+   ```powershell
+   Get-FileHash .\Reset-Receipt-0.1.0-Setup-x64.exe -Algorithm SHA256
+   ```
+
+3. Compare the output with `SHA256SUMS.txt`.
+4. Run the installer. Because it is unsigned, Windows may display an unknown-publisher warning; do not bypass organizational security policy.
+5. Launch **Reset Receipt** from the Start menu or desktop shortcut.
+6. Choose simulation for a credential-free tour, or configure BYOK for real measurement.
+
+The installed app launches without PowerShell, localhost, or a development server. Uninstall it from **Settings → Apps → Installed apps → Reset Receipt → Uninstall**. See [Windows installation](docs/INSTALLATION.md).
+
+## BYOK configuration
+
+Real SmartSpectra sessions use your own Presage API key:
+
+1. Obtain and manage a key through your Presage account.
+2. Open **Start a reset** and enter it in the password-masked **SmartSpectra API key** field.
+3. Select a camera, review the disclosure, provide consent, and start the session.
+
+The key is held only in renderer memory for the current app run and passed directly to the SmartSpectra SDK for authentication. Reset Receipt does not send it through app-defined IPC or write it to local storage, files, logs, diagnostics, receipts, or exports. Closing the application clears the in-memory value. Never place a key in `.env`, source code, screenshots, issue reports, or commits.
+
+## Simulation versus real measurements
+
+| Simulation | Real measurement |
+| --- | --- |
+| No API key | User-provided Presage API key |
+| No camera access | Explicit consent and camera permission |
+| Synthetic signals | SmartSpectra camera-derived signals |
+| No Presage credits | May consume Presage credits |
+| Always labelled **SIMULATION — NOT REAL** | Receipt identifies SmartSpectra measurement |
+
+Simulation is useful for exploring the workflow and testing UI behavior. Its numbers are illustrative and must never be presented as real sensing evidence.
+
+## Privacy and camera handling
+
+Reset Receipt does not implement video or frame recording. Camera frames and raw session samples are processed in memory, bounded during the session, and released or cleared during cleanup. The app stores only the guide-seen flag and selected camera ID in local storage; it does not store the API key.
+
+Camera permission is restricted to video access from the application’s own renderer. Popups and renderer navigation are denied, context isolation and sandboxing are enabled, production DevTools are disabled, and no arbitrary credential IPC is exposed.
+
+SmartSpectra still authenticates with Presage. Presage-side processing, retention, and network behavior are governed by Presage and have not been independently verified by this project. Read [Privacy and data handling](docs/PRIVACY.md).
+
+## Supported platforms and requirements
+
+- Verified platform: Windows x64.
+- Camera for real measurement; no camera for simulation.
+- Presage account, API key, and available credits for real measurement.
+- Camera delivery of at least 25 FPS for SmartSpectra; the app rejects a preflight below 24 FPS.
+- Recommended framing: head, shoulders, and upper chest visible with stable, even lighting.
+
+macOS, Linux, Windows on ARM, code signing, and automatic updates are not supported by v0.1.0.
+
+## Development setup and reproduction instructions
+
+The verified release toolchain used Node.js 24.14.1 and npm 11.18.0 on Windows.
 
 ```powershell
 git clone https://github.com/ScapeXYZ/reset-receipt.git
-cd BreatheBreak
+cd reset-receipt
 npm install
+npm run typecheck
+npm test -- --maxWorkers=1
+npm run build
 ```
 
-Real mode additionally needs an OS-visible camera, a SmartSpectra account, and your own API key. Simulation needs none of those.
-
-## Run in simulation
-
-Simulation-only mode is for interface review and offline development. It needs no camera or API key, uses synthetic data, and is persistently labelled **SIMULATION, NOT REAL**.
+Run the credential-free source simulation:
 
 ```powershell
 npm run dev:sim
 ```
 
-This source-only command disables environment-file loading, substitutes disabled SDK modules before renderer initialization, does not bind SmartSpectra IPC, and denies camera permissions. Simulation output is not evidence of real sensing.
-
-## Run with real hardware
-
-Use your own SmartSpectra key and never commit it:
+Run the development application for an authorized real session:
 
 ```powershell
-Copy-Item .env.example .env
-# Edit .env and replace the empty value copied from .env.example:
-# VITE_SMARTSPECTRA_API_KEY=your-own-key
 npm run dev
 ```
 
-The required variable name is exactly `VITE_SMARTSPECTRA_API_KEY`. `.env` files are gitignored; `.env.example` contains only the empty template. Never put a real key in source, screenshots, diagnostics, or a commit.
+Enter the API key only in the in-app BYOK field. To reproduce Windows artifacts and checks:
 
-For a real session:
+```powershell
+npm run dist:win
+npm run inspect:release
+npm run checksum:release
+npm run verify:bundle-secrets
+npm run smoke:packaged
+```
 
-1. Select the intended camera, read the disclosure, and check the explicit consent box.
-2. Press **Start session**. Camera acquisition begins only from this action.
-3. Breathe naturally until the baseline reaches three accepted readings or the 45-second cap.
-4. Press **Start guided minute** manually, then follow the 45-second guide. It never starts automatically.
-5. Press **Stop session** when the guide is complete. Stop releases the camera and opens the receipt.
-6. If the receipt is full or partial, use **Export PNG**. Insufficient and interrupted receipts intentionally have no export action.
+Do not start a real SDK session unless camera use and Presage credit consumption are authorized.
 
-Do not start a live session unless camera use and Presage credit consumption are authorized. There is no installer; this repository currently runs from source.
+## Tests and release verification
 
-### Camera readiness and low-frame-rate handling
+The v0.1.0 acceptance run verified all 10 public-release gates, including:
 
-Before SmartSpectra starts, real mode measures delivered camera frames for about three seconds. A median result below 24 FPS is rejected before SDK initialization; the UI explains that the SDK needs at least 25 FPS and releases the camera tracks. A passing preflight is an admission check, not proof that SDK processing will sustain that rate.
+- TypeScript typecheck, 147 automated tests, and production build.
+- Full Git-history and compiled-output Gitleaks scans.
+- Production credential-canary and installer-content inspection.
+- Credential-free packaged simulation.
+- Installed-app launch without localhost or a terminal.
+- One authorized packaged real-SDK BYOK session, camera access, measurement reception, and camera cleanup.
+- Official NSIS installation and uninstallation.
+- Electron IPC, CSP, navigation, and permission review.
+- README, privacy documentation, checksum, and download instructions.
 
-Real mode requests an ideal 640Ã—480 resolution at 30 FPS. The Presage SDK team directly confirmed that 640Ã—480 is supported, that 1280Ã—720 is a recommendation rather than a requirement, and that the lower resolution should not affect breathing-rate measurement. The browser and camera may negotiate different actual settings; authorized live-test diagnostics record those negotiated dimensions and frame rate.
-
-SmartSpectra error 14 is `kSustainedLowFrameRate`. Reset Receipt treats it as terminal: it does not retry automatically, stops the session, releases the camera, and asks the user to try a different camera or connection, close other applications, and start a new session. Restart is always user initiated.
-
-In repeated Camo-over-Wi-Fi diagnostics, the camera passed the preflight at 30 FPS while subsequent SDK frame delivery was approximately 14â€“15 FPS and ended with error 14. These records show the mismatch but do not establish Wi-Fi as its cause. A later successful run verified the sanitized negotiated-settings record at 640Ã—480 and 30 FPS.
-
-## Camera positioning for reliable readings
-
-![Camera-positioning reference with a seated person facing forward and the head, shoulders, and upper chest visible](docs/images/camera-positioning-reference.jpg)
-
-*Repository-approved framing reference supplied by the project owner.*
-
-For the clearest signal:
-
-- Sit facing the camera and position it close to eye level.
-- Move far enough back for your full head, both shoulders, and upper chest to remain visible.
-- Use soft, even light from the front. Avoid a bright window or lamp directly behind you.
-- Keep the camera and its support stable throughout the session.
-- Minimize talking, turning, and large upper-body movements while readings are collected.
-- Breathe naturally during the baseline; follow the on-screen guide only after starting the pacer yourself.
-
-### Avoid
-
-- framing that crops the upper chest or either shoulder;
-- dim, uneven, strongly backlit, or rapidly changing light;
-- excessive movement or a moving camera; and
-- extreme high, low, or side camera angles.
-
-Proper positioning can improve signal quality, but it does not guarantee accepted readings. The existing rules are unchanged: real mode still rejects a preflight below 24 FPS while explaining that the SDK needs at least 25 FPS, and a breathing-rate sample still needs SDK confidence of at least 45 plus valid stability, timestamp, and range checks.
-
-## Consent and data handling
-
-The application does not implement video or frame recording. Raw samples are held in bounded memory buffers during a session and cleared after the recap summary is created. A guide-seen flag and selected camera ID are stored in Electron `localStorage`. Sanitized diagnostics are written only in explicitly authorized live-test mode and are gitignored.
-
-SmartSpectra still authenticates with Presage even though this app constructs the SDK with `enableTelemetry: false`. Presage-side data handling and the installed SDK's network behavior have not been independently verified by this project. The renderer bundle also contains the configured API key, so a packaged desktop key would be extractable. Read [Privacy and data handling](docs/PRIVACY.md) before using or distributing the app.
-
-Electron permission checks and requests are denied except for video-only camera access from the application's own origin and web contents. The active-session watchdog is driven by SmartSpectra `frameSentThrough` events and stops and cleans up after eight seconds without an SDK frame. Content Security Policy hardening and comprehensive IPC sender validation are not claimed complete.
-
-## Reading gate and receipt rules
-
-A unique breathing-rate sample is accepted only when its SDK timestamp is valid, confidence is at least 45, the SDK marks it stable, and its value is within 4â€“45 breaths per minute. Samples are deduplicated by SDK timestamp; there is no fixed-clock warm-up rejection.
-
-A full Before/After receipt requires at least two accepted readings in each phase. Before is the baseline median. After is the median of up to the final three guided readings. A partial receipt shows aggregate median, range, and count without a comparison. Fewer than two total accepted readings show **â€œNot enough stable readings for a receipt.â€** An interrupted pacer invalidates the comparison and disables export.
-
-## Safety and non-medical boundary
-
-The guided pace is not a physiological measurement. The app does not diagnose, recommend treatment, make medical decisions, infer stress or relaxation, or support covert monitoring. Valid real receipts disclose: **â€œMeasured by SmartSpectra. Not a score. Not medical.â€** SmartSpectra metrics are subject to Presage's model cards and limitations.
-
-## What is testedâ€”and what is not
-
-The complete automated suite passes 146 of 146 tests on the documented Windows toolchain when run with one worker (`npm test -- --maxWorkers=1`). Coverage includes SDK payload mapping, confidence/stability/range gating, timestamp deduplication, baseline and receipt calculations, pacer timing/interruption, camera preflight and cleanup, permission policy, session safety, aggregate export, onboarding, simulation isolation, and a fake real-source journey. TypeScript typecheck and the production build also pass.
-
-Simulation, fixtures, and fake sources are never presented as real sensing evidence. No real run has produced a verified full Before/After receipt on the current build.
-
-### Verified real SDK receipt evidence â€” November 16, 2026
-
-![Real SmartSpectra partial Reset Receipt showing session median 18.6, observed range 6.0â€“21.7, and eight receipt readings](docs/images/real-sdk-receipt-2026-11-16.png)
-
-| Result | Verified value |
-| --- | --- |
-| Source | Real SmartSpectra SDK |
-| Session duration | 106.081 seconds |
-| Negotiated camera / preflight | 640Ã—480 at 30 FPS / 30 FPS |
-| Unique breathing-rate samples | 30 |
-| Gate-accepted samples | 9; confidence bins `5 / 16 / 5 / 4` |
-| Baseline | Completed by 45-second cap; receipt `Before n=1` |
-| Guided phase | Pacer started and ended; receipt `After n=7` |
-| SDK/session safety | No SDK errors; no camera stall; tracks stopped 57 ms after Stop |
-| Receipt | Partial: median 18.6, range 6.0â€“21.7 breaths/min, 8 phase-eligible readings |
-
-The nine-versus-eight count is consistent with the current rules. The ninth accepted sample arrived after `pacer-end`: diagnostics count every gate-accepted unique sample, while the receipt includes only readings captured during the baseline or guided phase. This run therefore demonstrates real sensing and a real partial receipt, but **does not demonstrate a valid Before/After comparison** because the baseline had fewer than two accepted readings. See the [full sanitized evidence report](docs/evidence/REAL_SDK_SESSION_2026-11-16.md).
-
-### Real-session evidence boundary
-
-Private, gitignored sanitized diagnostics support the following limited claims:
-
-| Run | Verified evidence | Boundary |
-| --- | --- | --- |
-| R2 | A real Camo session started at `2026-11-14T02:10:48.623Z`, Stop was clicked at `02:12:04.654Z`, and media tracks stopped 34 ms later. | Earlier diagnostics did not carry the later self-identifying summary schema; this is lifecycle evidence, not a current-build receipt result. |
-| R3 | Real Camo session `6d47a40d-1a71-4062-b6e9-cf042affe72a` lasted 75.831 seconds, produced 11 unique rate samples and one accepted baseline reading, completed baseline by cap, never started the pacer, and released media. | No guided comparison or valid full receipt. |
-| R4 | Real Camo session `f415802a-61d1-4738-af9a-624a33fcb469` recorded accepted readings and a pacer interval, but its first pacer interval lasted about 13 minutes 24 seconds. | Earlier-build timing failure; it motivated later three-minute, suspend/lock, and interruption safeguards and is not valid receipt evidence. |
-| Built-in webcam | A verified current-build run lasted 106.038 seconds with negotiated 640Ã—480 at 30 FPS and a 30 FPS preflight, but produced zero chest samples and zero unique breathing-rate samples. | This single run does not show that built-in webcams generally fail. Framing is one possible explanation for the missing samples, but the diagnostics do not establish a cause. The run does not validate a Before/After comparison. |
-| R6 | Run `18431cfe-270c-4e15-8c93-1410888c30eb` used Camo, lasted 91.475 seconds, produced 20 unique rate samples and one accepted baseline reading, completed baseline by cap, never started the pacer, reported no SDK errors, and released media 34 ms after Stop. | No guided comparison or valid full receipt. |
-| Recent error-14 runs | Camo-over-Wi-Fi passed a recorded 30 FPS preflight, then SDK delivery fell to approximately 14â€“15 FPS and SmartSpectra emitted error 14; tracks were released. | Confirms sustained-low-frame-rate handling, not its root cause and not a successful receipt. Negotiated camera settings were verified by the subsequent November 16 run. |
-| November 16 current-build evidence | Run `403701e1-6e8d-486d-a56d-0f8ce021fba2`, session `761df35a-f09b-41c9-93b8-e79562894807`, negotiated 640Ã—480 at 30 FPS, completed baseline and pacer, produced 30 unique samples and a real partial receipt, and released media without SDK error or stall. | Receipt had `Before n=1` and `After n=7`; no valid Before/After comparison. |
+See [Windows release acceptance](docs/RELEASE_ACCEPTANCE.md) for evidence and boundaries.
 
 ## Known limitations
 
-- No Windows installer or code-signed distributable is provided.
-- The renderer-embedded API key is not suitable as a long-term production secret.
-- No successful full Before/After receipt has been verified with the real SDK on the current build.
-- A 30 FPS camera preflight did not prevent later sustained-low-frame-rate failures in the observed Camo-over-Wi-Fi runs; the cause remains unproven.
-- Presage-side network, telemetry, retention, and deletion behavior has not been independently verified by this project.
-- The optional abdomen signal is requested but is not required for the receipt.
-- This prototype is intended for adults; distribution, accessibility, licensing, and privacy review remain product-lead responsibilities.
+- The v0.1.0 installer is unsigned.
+- Users must obtain, protect, and revoke their own Presage API keys.
+- No full real-SDK BEFORE/AFTER receipt has been verified; authorized real runs produced partial results.
+- Camera preflight cannot guarantee sustained SDK processing performance.
+- Presage-side data handling has not been independently audited by this project.
+- The optional abdomen signal is not required for the receipt.
+- This prototype has not completed a formal accessibility, clinical, or regulatory review.
 
-## Challenge alignment
+## Documentation
 
-The first Git commit is dated November 11, 2026, inside the November 4â€“22 challenge window. The repository integrates the real Presage SmartSpectra SDK and contains private, gitignored evidence of real sessions. Submission readinessâ€”including the still-placeholder demo-video URL, DEV-post URL, and public-repository URL, plus entrant status and judge instructionsâ€”is tracked in [Submission checklist](docs/SUBMISSION_CHECKLIST.md).
-
-## Project map and license
-
-- `src/main` â€” Electron lifecycle, SDK IPC binding, session safety, authorized diagnostics.
-- `src/preload` â€” constrained application bridge and official SDK preload bridge.
-- `src/renderer/src/signals` â€” real and simulation sources, mapping, gating, camera cleanup.
-- `src/renderer/src/features` â€” onboarding, recorder, pacer, receipt, and PNG export.
-- `docs` â€” product, privacy, SDK, runbook, claims, and submission evidence.
-
-Detailed evidence and operating documents:
-
-- [SDK integration](docs/SDK_INTEGRATION.md)
+- [Windows installation](docs/INSTALLATION.md)
 - [Privacy and data handling](docs/PRIVACY.md)
+- [SDK integration](docs/SDK_INTEGRATION.md)
 - [Claim-to-evidence register](docs/CLAIMS.md)
+- [Release acceptance](docs/RELEASE_ACCEPTANCE.md)
 - [Live-test runbook](docs/R1-LIVE-TEST-RUNBOOK.md)
-- [Submission checklist](docs/SUBMISSION_CHECKLIST.md)
+- [MIT License](LICENSE)
 
-Licensed under the [MIT License](LICENSE).
+## Presage hackathon information
+
+Reset Receipt was created for the Presage SmartSpectra challenge as a consent-first example of honest physiological-sensing UX. It integrates the real SmartSpectra SDK while keeping simulation unmistakably separate from measurement evidence. The project emphasizes transparent sample-quality gates, non-medical language, runtime BYOK, and explicit camera control.
+
+Submission details and challenge evidence are tracked in the [submission checklist](docs/SUBMISSION_CHECKLIST.md).

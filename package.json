@@ -2,6 +2,9 @@
   "name": "breathebreak",
   "productName": "Reset Receipt",
   "version": "0.1.0",
+  "description": "Consent-first breathing measurement and guided-session receipts using Presage SmartSpectra.",
+  "author": "ScapeXYZ",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "main": "out/main/index.js",
@@ -9,6 +12,13 @@
     "dev": "electron-vite dev",
     "dev:sim": "node scripts/dev-sim.mjs",
     "build": "electron-vite build",
+    "dist:win": "npm run build && electron-builder --win nsis --x64",
+    "pack:win": "npm run build && electron-builder --dir --win --x64",
+    "capture:release": "node scripts/screenshots/require-simulation.mjs && vite build --config scripts/screenshots/vite.config.mjs && node scripts/screenshots/verify-safe-bundle.mjs && electron scripts/screenshots/release-result.cjs",
+    "inspect:release": "node scripts/windows-release/inspect-artifact.mjs",
+    "smoke:packaged": "node scripts/windows-release/smoke-packaged.mjs",
+    "checksum:release": "node scripts/windows-release/checksum.mjs",
+    "verify:bundle-secrets": "node scripts/tests/verify-production-bundle.mjs",
     "preview": "electron-vite preview",
     "screenshots": "node scripts/screenshots/require-simulation.mjs && vite build --config scripts/screenshots/vite.config.mjs && node scripts/screenshots/verify-safe-bundle.mjs && electron scripts/screenshots/main.cjs",
     "typecheck": "tsc --noEmit",
@@ -39,6 +49,7 @@
     "@vitejs/plugin-react": "^5.1.0",
     "autoprefixer": "^10.4.21",
     "electron": "43.8.1",
+    "electron-builder": "^26.18.0",
     "electron-vite": "^5.0.0",
     "jsdom": "^27.1.0",
     "postcss": "^8.5.6",
@@ -46,5 +57,47 @@
     "typescript": "^5.9.3",
     "vite": "^7.2.2",
     "vitest": "^4.0.8"
+  },
+  "build": {
+    "appId": "com.scapexyz.resetreceipt",
+    "productName": "Reset Receipt",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "package.json",
+      "!**/.env*",
+      "!**/.diagnostics/**",
+      "!**/private-evidence/**",
+      "!**/evidence/private/**",
+      "!**/*.ndjson",
+      "!**/*.log"
+    ],
+    "win": {
+      "extraResources": [
+        {
+          "from": "node_modules/@smartspectra/node-sdk-win32-${arch}/",
+          "to": "smartspectra/"
+        }
+      ],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "Reset-Receipt-${version}-Setup-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
+    }
   }
 }

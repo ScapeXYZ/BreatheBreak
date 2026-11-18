@@ -7,6 +7,7 @@ This document separates behavior implemented by Reset Receipt from statements ma
 - During an explicitly authorized live test, the app writes sanitized NDJSON diagnostics to `.diagnostics/r1-live-test.ndjson`. The directory is gitignored. Records contain launch/session identifiers, source mode, event timestamps, SDK error codes, camera label, aggregate counts, confidence-bin counts, timing, CPU percentage, and signal-window share. They do not contain raw frames or physiological values.
 - The first-run guide writes `breathebreak.guideSeen.v1=true` to renderer `localStorage` after the guide is skipped or completed.
 - Camera selection writes the selected device ID to `localStorage` as `breathebreak.cameraId`. Removing the selection removes that value.
+- A user-entered SmartSpectra API key is held only in renderer memory for the current app run. It is not written to `localStorage`, files, diagnostics, receipts, exports, or application logs, and it is not exposed through Reset Receipt IPC. Closing the app clears it.
 - During a session, bounded chest-trace, breathing-rate, quality, and guided-completion buffers are held in memory. Stop creates the approved recap summary and then clears the raw recorder buffers. The in-memory recap can include aggregate values and a decimated chest trace until the user resets or closes the app.
 
 Live-test diagnostics are disabled unless `BREATHEBREAK_LIVE_TEST` exactly equals the authorization sentinel. Local diagnostics are not deleted automatically by the app; the operator must delete the ignored `.diagnostics` directory when it is no longer needed. Browser/Electron `localStorage` values remain until cleared by the app, the user, or the Electron profile. These retention behaviors are supported by source inspection but have not been independently verified against every failure or operating-system shutdown mode.
@@ -19,7 +20,7 @@ The PNG receipt exporter receives approved aggregate receipt fields only. It doe
 
 ## Consent and camera lifecycle
 
-Normal real mode requires an available SDK key, a selected camera, an explicit consent checkbox, and the **Start session** action. Camera enumeration can occur on the welcome screen in real mode so the user can select a device; capture starts only during the explicit session-start path. Stop and teardown call the source cleanup path, which stops media tracks. Suspend and lock events request a forced stop. Current-build hardware behavior has not yet been independently verified.
+Normal real mode requires a user-entered SDK key, a selected camera, an explicit consent checkbox, and the **Start session** action. The password-masked key field is runtime BYOK: the renderer passes the value directly to the SmartSpectra SDK constructor for Presage authentication. Camera enumeration can occur on the welcome screen in real mode so the user can select a device; capture starts only during the explicit session-start path. Stop and teardown call the source cleanup path, which stops media tracks. Suspend and lock events request a forced stop. Current-build hardware behavior has not yet been independently verified.
 
 Source-only simulation mode is separate. It disables environment-file loading and SDK entry points, denies permission requests, and does not enumerate or acquire cameras. It is interface evidence only.
 
@@ -45,11 +46,12 @@ The SmartSpectra SDK Privacy Policy states retention periods including up to 365
 
 Presage directs privacy requests to `support@presagetech.com` and notes that it may need information from the developer or application to locate an end user's records. Deleting Reset Receipt's local files or profile does not itself delete information held by Presage.
 
-## API-key limitation
+## Runtime API key (BYOK)
 
-Real mode reads `VITE_SMARTSPECTRA_API_KEY` in renderer code and passes it to the SDK constructor. Vite therefore embeds the value in the renderer bundle. A packaged desktop application cannot keep that value secret from a determined user. Use only a suitably restricted key under Presage's policy, never commit it, and do not distribute a production credential until the product lead has approved the credential model.
+Real mode does not read a build-time API key. Each user enters their own key at runtime; Reset Receipt keeps it only in renderer memory and passes it directly to the SmartSpectra SDK for authentication with Presage. It is never placed in application IPC or persistent application storage. The packaged renderer code can still be inspected or modified by a user with local machine access, so users should follow Presage's key-management and restriction guidance. Production output is checked for the former environment-variable name and, when available locally, the configured development value without printing it.
+
+The Windows packaging allowlist includes compiled application output and required runtime dependencies. It explicitly excludes environment files, diagnostics directories, private-evidence directories, NDJSON, and log files. Release verification also inspects the packaged archive and NSIS payload, compares any private local development value without printing it, and runs Gitleaks. These checks reduce accidental inclusion risk but must be repeated for every release artifact.
 
 ## No optional AI service in this app
 
 Reset Receipt does not request SmartSpectra LLM Insights and has no other AI-service integration. Presage documents Insights as an optional service that can send buffered metric values and prompt text to Presage and an LLM; that feature is outside this app's implemented flow.
-

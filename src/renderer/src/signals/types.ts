@@ -15,6 +15,6 @@ export interface SignalSource {
   readonly label: string
   readonly available: boolean
   listCameras(): Promise<CameraDevice[]>
-  start(listener: SignalListener, options?: { cameraId?: string; onStatus?: (status: SourceStatus, attempt?: number) => void; onFatalError?: (message: string) => void }): Promise<void>
+  start(listener: SignalListener, options?: { cameraId?: string; apiKey?: string; onStatus?: (status: SourceStatus, attempt?: number) => void; onFatalError?: (message: string) => void }): Promise<void>
   stop(): Promise<void>
 }

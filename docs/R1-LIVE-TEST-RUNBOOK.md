@@ -59,8 +59,8 @@ From PowerShell, configure the credential in the ignored local `.env` without pr
 ```powershell
 Set-Location C:\dev\breathebreak
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-notepad .env  # enter VITE_SMARTSPECTRA_API_KEY locally; do not print it
-# Edit .env locally: VITE_SMARTSPECTRA_API_KEY=<development key>
+# Launch the app, then enter the authorized key in the password-masked runtime field.
+# Do not place the key in an environment file, terminal command, screenshot, or log.
 $env:BREATHEBREAK_LIVE_TEST = 'R1_AUTHORIZED'
 npm run dev
 ```

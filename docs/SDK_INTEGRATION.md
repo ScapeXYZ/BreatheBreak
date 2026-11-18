@@ -23,7 +23,7 @@ Source-only simulation mode is resolved before renderer initialization. In that 
 3. records only the negotiated track width, height, and frame rate when authorized live-test diagnostics are enabled;
 4. measures delivered frames for about three seconds before SDK construction and rejects a median below 24 FPS;
 5. detaches the hidden preflight video and cancels its frame-callback loop after success while preserving the original stream and camera track;
-6. constructs `SmartSpectraSDK` with the renderer-embedded API key and supplies that preserved `MediaStream` to it;
+6. constructs `SmartSpectraSDK` with the user-entered, in-memory runtime key and supplies that preserved `MediaStream` to it;
 7. decodes typed metrics and maps them into application samples;
 8. stops the SDK, watchdog, preflight monitor, and every media track during cleanup.
 
@@ -87,6 +87,6 @@ They do not add frames, raw physiological values, device IDs, camera labels beyo
 
 ## Verification boundary
 
-Offline tests cover mapping, gating, state transitions, receipt calculation, camera preflight and cleanup, permission policy, SDK-frame watchdog behavior, error-14 terminal handling, session safety, simulation isolation, and fake-real-source integration. The complete suite currently passes 146 of 146 tests when run with one worker. Simulation and fake-source results are not real sensing evidence.
+Offline tests cover mapping, gating, state transitions, receipt calculation and explanation, camera preflight and cleanup, permission policy, SDK-frame watchdog behavior, error-14 terminal handling, session safety, simulation isolation, and fake-real-source integration. The complete suite currently passes 147 of 147 tests when run with one worker. Simulation and fake-source results are not real sensing evidence.
 
 Real R2–R6, later error-14 evidence, and the November 16 partial receipt are summarized in the README. They verify real SDK integration, negotiated camera settings, accepted readings, pacer lifecycle, and camera cleanup, but do not establish a successful full Before/After receipt on the current build.

@@ -31,12 +31,12 @@ export function friendlyQuality(code: number, hint = ''): SignalQuality {
   return code === ValidationCode.kOk ? { kind: 'ok' } : { kind: 'poor', message: messages[code] ?? (hint || 'Adjust your position and lighting.') }
 }
 
-type StartOptions = { cameraId?: string; onStatus?: (status: SourceStatus, attempt?: number) => void; onFatalError?: (message: string) => void }
+type StartOptions = { cameraId?: string; apiKey?: string; onStatus?: (status: SourceStatus, attempt?: number) => void; onFatalError?: (message: string) => void }
 
 export class SmartSpectraSignalSource implements SignalSource {
   readonly kind = 'smartspectra' as const
   readonly label = 'SmartSpectra'
-  readonly available = Boolean(import.meta.env.VITE_SMARTSPECTRA_API_KEY)
+  readonly available = true
   private sdk?: SmartSpectraSDK
   private stream?: MediaStream
   private frameMonitor?: CameraFrameMonitor
@@ -63,7 +63,8 @@ export class SmartSpectraSignalSource implements SignalSource {
   }
 
   async start(listener: SignalListener, options: StartOptions = {}): Promise<void> {
-    if (!this.available) throw new Error('Add VITE_SMARTSPECTRA_API_KEY to a local .env file before using the SDK source.')
+    const apiKey = options.apiKey?.trim()
+    if (!apiKey) throw new Error('Enter your SmartSpectra API key before using the SDK source.')
     if (!options.cameraId) throw new Error('Select an available camera before starting.')
     await this.stop()
     const liveTest = await window.breathebreak.getLiveTestConfig()
@@ -81,11 +82,11 @@ export class SmartSpectraSignalSource implements SignalSource {
     this.options = options
     this.stopping = false
     this.reconnect.reset()
-    await this.startAttempt(options.cameraId)
+    await this.startAttempt(options.cameraId, apiKey)
     options.onStatus?.('running')
   }
 
-  private async startAttempt(cameraId: string): Promise<void> {
+  private async startAttempt(cameraId: string, apiKey: string): Promise<void> {
     const cameras = await this.listCameras()
     const camera = cameras.find((candidate) => candidate.id === cameraId)
     if (!camera) throw new Error('The selected camera is no longer available. Choose another camera.')
@@ -104,7 +105,7 @@ export class SmartSpectraSignalSource implements SignalSource {
     frameMonitor.stop()
     this.frameMonitor = undefined
     const sdk = new SmartSpectraSDK({
-      apiKey: import.meta.env.VITE_SMARTSPECTRA_API_KEY,
+      apiKey,
       requestedMetrics: REQUESTED_METRICS,
       enableAccumulatedOutput: false,
       enableTelemetry: false
@@ -156,14 +157,15 @@ export class SmartSpectraSignalSource implements SignalSource {
   private async handleError(code: number, message: string, retryable: boolean): Promise<void> {
     if (this.liveTestEnabled) window.breathebreak.recordLiveTestEvent({ event: 'sdk-error', code })
     if (this.stopping || this.recovering) return
+    const onFatalError = this.options?.onFatalError
     if (code === SmartSpectraErrorCode.kSustainedLowFrameRate) {
       await this.stop()
-      this.options?.onFatalError?.(SUSTAINED_LOW_FRAME_RATE_MESSAGE)
+      onFatalError?.(SUSTAINED_LOW_FRAME_RATE_MESSAGE)
       return
     }
     if (!retryable) {
       await this.stop()
-      this.options?.onFatalError?.('The camera signal stopped. Please review the setup and try again.')
+      onFatalError?.('The camera signal stopped. Please review the setup and try again.')
       return
     }
     this.recovering = true
@@ -172,7 +174,7 @@ export class SmartSpectraSignalSource implements SignalSource {
         const delay = this.reconnect.nextDelay()
         if (delay === undefined) {
           await this.stop()
-          this.options?.onFatalError?.('Unable to reconnect after three attempts. Please check the camera and try again.')
+          onFatalError?.('Unable to reconnect after three attempts. Please check the camera and try again.')
           return
         }
         this.options?.onStatus?.('reconnecting', this.reconnect.attemptCount)
@@ -180,7 +182,7 @@ export class SmartSpectraSignalSource implements SignalSource {
         await wait(delay)
         if (this.stopping) return
         try {
-          await this.startAttempt(this.options?.cameraId ?? '')
+          await this.startAttempt(this.options?.cameraId ?? '', this.options?.apiKey ?? '')
           this.reconnect.reset()
           this.options?.onStatus?.('running')
           return
@@ -201,6 +203,7 @@ export class SmartSpectraSignalSource implements SignalSource {
     this.releaseMediaStream()
     this.stream = undefined
     this.listener = undefined
+    this.options = undefined
     this.recovering = false
   }
 

@@ -9,6 +9,7 @@ import { cameraPermissionAllowed } from './permissionPolicy'
 
 declare const __BREATHEBREAK_SIMULATION_ONLY__: boolean
 const simulationOnly=simulationOnlyForRuntime(app.isPackaged,__BREATHEBREAK_SIMULATION_ONLY__)
+if (app.isPackaged) process.env.SMARTSPECTRA_CAPI_PATH = join(process.resourcesPath, 'smartspectra', 'smartspectra_capi.dll')
 
 const liveTestEnabled = isLiveTestEnabled(process.env.BREATHEBREAK_LIVE_TEST)
 const diagnosticPath = resolve(process.cwd(), LIVE_TEST_DIAGNOSTIC_RELATIVE_PATH)
@@ -53,7 +54,8 @@ async function createWindow(): Promise<void> {
       contextIsolation: true,
       sandbox: true,
       nodeIntegration: false,
-      webSecurity: true
+      webSecurity: true,
+      devTools: !app.isPackaged
     }
   })
   applicationContents = window.webContents
