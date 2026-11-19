@@ -1,10 +1,10 @@
 # R1 live-test readiness runbook
 
-R1 must not begin until Claude explicitly authorizes the live session. This runbook prepares a single controlled BreatheBreak real-SDK check; it is not evidence that the Phase 0 three-minute stability gate has passed.
+R1 must not begin until Claude explicitly authorizes the live session. This runbook prepares a single controlled Reset Receipt real-SDK check; it is not evidence that the Phase 0 three-minute stability gate has passed.
 
 ## Before authorization
 
-1. Stay on `design-redesign` with a clean, checkpointed working tree.
+1. Stay on `reset-receipt` with a clean, checkpointed working tree.
 2. Confirm the API key exists only in the ignored local `.env`; never print or record it.
 3. Confirm Camo USB is available and no other application is using it.
 4. Check and privately record Presage portal usage before the run.
@@ -13,17 +13,24 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 
 ## Authorized run
 
-1. Launch BreatheBreak only after Claude's authorization.
-2. Confirm no camera permission or SDK processing occurs on application launch.
-3. Select **SmartSpectra SDK** and explicitly select Camo by its displayed device entry.
-4. Verify **Start session** remains disabled until camera selection and consent are complete.
-5. Select consent and press **Start session** once.
-6. Confirm the camera-status line says **Camera: on**, the LIVE indicator is visible, and the signal-quality row progresses without invented values.
-7. Observe the rate placeholder during warm-up and record whether the required “Measuring…” copy is present.
-8. Run only for the duration authorized by Claude. Record sanitized start/end timestamps, duration, error-event count, rate-sample count, and chest-sample count; do not record sample values.
-9. Keep **Stop session** visible and operable throughout. Press it once at the authorized endpoint.
-10. Confirm the camera indicator clears, camera hardware is released, raw session buffers are cleared, and the recap contains only the approved summary and **Source: SmartSpectra**.
-11. Press **Done** and confirm the app returns to Welcome/Consent without stale readings or guided metadata.
+1. Launch Reset Receipt only after Claude's authorization.
+2. Confirm the source is **SmartSpectra SDK** (Real SDK).
+3. Confirm the **DEV SIMULATION** banner is absent.
+4. Confirm the status line says **Live-test log: writing** and note its short run ID.
+5. Confirm Camo is selected by its displayed camera entry.
+6. Only after those four checks, select consent and press **Start session** once.
+7. Confirm no camera permission or SDK processing occurred before Start, and confirm **Start session** was disabled until camera selection and consent were complete.
+8. Confirm the camera-status line says **Camera: on**, the LIVE indicator is visible, and the signal-quality row progresses without invented values.
+9. Observe the rate placeholder before an accepted reading and confirm **Natural breathing: n of 3 readings** advances only on accepted readings.
+10. Confirm the baseline completes by `count` after three accepted readings, or by `cap` at 45 seconds. Confirm the UI says **Baseline done. Start your guided minute.**
+11. Confirm the pacer does not start automatically. Start it explicitly, then preserve the 45-second guided phase.
+12. Run only for the duration authorized by Claude. Do not record sample values.
+13. Keep **Stop session** visible and operable throughout. Press it once at the authorized endpoint.
+    - Confirm the visible session-limit countdown is running. The application automatically stops at three minutes.
+    - If the computer sleeps or locks, do not resume the attempt: the application must stop, release the camera, and show **Session stopped because the computer went to sleep or was locked**.
+14. Confirm the camera indicator clears, camera hardware is released, raw session buffers are cleared, and the recap contains only the approved summary and **Source: SmartSpectra**.
+15. Click **Copy run report**. Confirm it includes baseline completion reason, time to baseline completion, accepted counts before and after pacer start, wall-clock and active seconds, total pause duration, largest diagnostic-record gap, and times to the last rate and chest samples. Paste the Run Report verbatim; do not reconstruct or edit it.
+16. Press **Done** and confirm the app returns to Welcome/Consent without stale readings or guided metadata.
 
 ## After the run
 
@@ -33,6 +40,7 @@ R1 must not begin until Claude explicitly authorizes the live session. This runb
 4. Verify the camera is also released if the window is closed or a fatal error occurs.
 5. Keep any sanitized diagnostics private and ignored. Do not commit NDJSON or physiological logs.
 6. Report confirmed observations separately from uncertain boundaries. The three-minute gate remains unverified unless an authorized run directly proves its exact duration and stability.
+7. Include the copied Run Report verbatim. Its run ID, session ID, source, timestamps, counts, and release status are the canonical sanitized evidence for that attempt.
 
 ## Abort conditions
 
@@ -51,8 +59,8 @@ From PowerShell, configure the credential in the ignored local `.env` without pr
 ```powershell
 Set-Location C:\dev\breathebreak
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-notepad .env  # enter VITE_SMARTSPECTRA_API_KEY locally; do not print it
-# Edit .env locally: VITE_SMARTSPECTRA_API_KEY=<development key>
+# Launch the app, then enter the authorized key in the password-masked runtime field.
+# Do not place the key in an environment file, terminal command, screenshot, or log.
 $env:BREATHEBREAK_LIVE_TEST = 'R1_AUTHORIZED'
 npm run dev
 ```

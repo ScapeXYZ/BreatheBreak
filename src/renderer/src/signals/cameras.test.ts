@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { resolveSelectedCamera, stopMediaStream, videoCameras } from './cameras'
+import { negotiatedCameraSettings, realCameraStreamConstraints, resolveSelectedCamera, stopMediaStream, videoCameras } from './cameras'
 
 const device = (kind: MediaDeviceKind, deviceId: string, label = '') => ({ kind, deviceId, label }) as MediaDeviceInfo
 
@@ -12,7 +12,21 @@ describe('camera selection and cleanup', () => {
   it('fails closed instead of falling back when a remembered camera is missing', () => { expect(resolveSelectedCamera(cameras, 'missing')).toBeUndefined() })
   it('stops every track during cleanup', () => {
     const tracks = [{ stop: vi.fn() }, { stop: vi.fn() }]
-    stopMediaStream({ getTracks: () => tracks } as unknown as MediaStream)
+    expect(stopMediaStream({ getTracks: () => tracks } as unknown as MediaStream)).toBe(2)
     expect(tracks.every((track) => track.stop.mock.calls.length === 1)).toBe(true)
+  })
+  it('requests the Presage-approved 640x480 real-camera configuration at 30 FPS', () => {
+    expect(realCameraStreamConstraints('camo')).toEqual({
+      audio: false,
+      video: { deviceId: { exact: 'camo' }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } }
+    })
+  })
+  it('returns only negotiated dimensions and frame rate', () => {
+    const stream = { getVideoTracks: () => [{ getSettings: () => ({ width: 1280, height: 720, frameRate: 29.97, deviceId: 'not-exported' }) }] } as unknown as MediaStream
+    expect(negotiatedCameraSettings(stream)).toEqual({ width: 1280, height: 720, frameRate: 29.97 })
+  })
+  it('uses nulls when negotiated settings are missing', () => {
+    const stream = { getVideoTracks: () => [] } as unknown as MediaStream
+    expect(negotiatedCameraSettings(stream)).toEqual({ width: null, height: null, frameRate: null })
   })
 })

@@ -1,0 +1,42 @@
+import type { TracePoint } from '../features/sessions/recorder'
+import { GardenCanvas } from './GardenCanvas'
+
+type InstrumentProps = {
+  phaseLabel: string; timerText: string; timerCaption: string; readingProgress?: string
+  signalLabel: 'Simulated' | 'Live'; readChest: () => number | undefined; active: boolean; progress: number
+}
+
+export function SessionInstrument({ phaseLabel, timerText, timerCaption, readingProgress, signalLabel, readChest, active, progress }: InstrumentProps): JSX.Element {
+  const circumference = 2 * Math.PI * 176
+  const clamped = Math.min(1, Math.max(0, progress))
+  return <div className="session-instrument" role="group" aria-label={`${phaseLabel}, ${timerText}, ${timerCaption}`}>
+    <div className="instrument-glow" aria-hidden="true" /><div className="instrument-ring">
+      <svg viewBox="0 0 380 380" aria-hidden="true"><defs><linearGradient id="liveRingGradient" x1="0" y1="1" x2="1" y2="0"><stop stopColor="#3e8799" /><stop offset=".56" stopColor="#79e7df" /><stop offset="1" stopColor="#d4fffb" /></linearGradient></defs><circle className="instrument-track" cx="190" cy="190" r="176" /><circle className="instrument-progress instrument-progress--live" cx="190" cy="190" r="176" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - clamped)} /></svg>
+      <div className="instrument-signal-label">{signalLabel} flower</div>
+      <div className="instrument-flower instrument-flower--live"><GardenCanvas readChest={readChest} active={active} quality="auto" /></div>
+      <div className="instrument-readout"><span>{phaseLabel}</span><strong>{timerText}</strong><small>{timerCaption}</small>{readingProgress && <b>{readingProgress}</b>}</div>
+    </div>
+  </div>
+}
+
+export function WelcomeInstrument(): JSX.Element {
+  const circumference = 2 * Math.PI * 176
+  return <div className="welcome-instrument">
+    <div className="instrument-glow" aria-hidden="true" />
+    <div className="instrument-ring" role="img" aria-label="Preview breathing ring, ready, about one and a half minutes">
+      <svg viewBox="0 0 380 380" aria-hidden="true"><defs><linearGradient id="heroRingGradient" x1="0" y1="1" x2="1" y2="0"><stop stopColor="#3e8799" /><stop offset=".56" stopColor="#79e7df" /><stop offset="1" stopColor="#d4fffb" /></linearGradient><filter id="ringLeadGlow"><feGaussianBlur stdDeviation="3" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs><circle className="instrument-track" cx="190" cy="190" r="176" /><circle className="instrument-progress" cx="190" cy="190" r="176" strokeDasharray={circumference} strokeDashoffset={circumference * .18} /><circle className="instrument-lead" cx="338" cy="95" r="5" /></svg>
+      <div className="instrument-flower"><GardenCanvas readChest={() => undefined} active preview quality="low" /></div>
+      <div className="instrument-readout instrument-readout--welcome"><span>Ready</span><strong>About 1.5 minutes</strong><small>Preview</small></div>
+    </div>
+    <div className="welcome-waveform" aria-label="No signal yet"><div className="waveform-heading"><span>Breathing signal</span><strong>No signal yet</strong></div><svg viewBox="0 0 660 54" preserveAspectRatio="none" aria-hidden="true"><path d="M0 27 C90 27 120 27 170 27 S260 27 330 27 S470 27 540 27 S620 27 660 27" /></svg></div>
+  </div>
+}
+
+export function LiveWaveform({ points, signalLabel }: { points: readonly TracePoint[]; signalLabel: 'Simulated' | 'Live' }): JSX.Element {
+  const values = points.slice(-80).map(point => point.value)
+  const minimum = values.length ? Math.min(...values) : 0
+  const maximum = values.length ? Math.max(...values) : 1
+  const span = Math.max(maximum - minimum, .0001)
+  const polyline = values.length > 1 ? values.map((value, index) => `${(index / (values.length - 1)) * 100},${18 - ((value - minimum) / span) * 14}`).join(' ') : '0,18 100,18'
+  return <div className="live-waveform"><div className="waveform-label"><span>Chest trace</span><strong>{signalLabel.toUpperCase()}</strong></div><svg viewBox="0 0 100 22" preserveAspectRatio="none" role="img" aria-label={`${signalLabel} chest trace${values.length > 1 ? '' : ', waiting for data'}`}><path d="M0 18H100" /><polyline points={polyline} /></svg></div>
+}

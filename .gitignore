@@ -15,3 +15,5 @@ private-evidence/
 evidence/private/
 BreatheBreak-Evidence/
 *.ndjson
+.vite/
+release/

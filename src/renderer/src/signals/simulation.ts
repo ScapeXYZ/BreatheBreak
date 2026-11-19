@@ -15,10 +15,10 @@ export class SimulationSignalSource implements SignalSource {
     this.timer = setInterval(() => {
       const elapsed = (performance.now() - this.startedAt) / 1000
       const phase = elapsed * Math.PI * 0.32
-      const warmed = elapsed >= 8
+      const warmed = elapsed >= 30
       listener({
         timestampMs: Date.now(),
-        breathingRate: { value: 9.6 + Math.sin(elapsed / 9) * 0.8, confidence: warmed ? 0.92 : 0.2, stable: warmed },
+        breathingRate: { value: 9.6 + Math.sin(elapsed / 9) * 0.8, confidence: warmed ? 92 : 20, stable: warmed, timestampMs: Date.now() },
         chestTrace: Math.sin(phase),
         abdomenTrace: Math.sin(phase - 0.25) * 0.7,
         quality: warmed ? { kind: 'ok' } : { kind: 'warming', message: 'Synthetic signal warming up' }

@@ -1,0 +1,25 @@
+'use strict'
+const { app, BrowserWindow, session } = require('electron')
+const { mkdir, writeFile } = require('node:fs/promises')
+const path = require('node:path')
+
+if (process.env.BREATHEBREAK_DEV_SIMULATION !== '1') throw new Error('Release screenshot capture requires explicit simulation mode.')
+const root = path.resolve(__dirname, '../..')
+const output = path.join(root, 'docs/screenshots/reset-receipt-result.png')
+
+app.whenReady().then(async () => {
+  session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
+  session.defaultSession.setPermissionCheckHandler(() => false)
+  const window = new BrowserWindow({ width: 1440, height: 1100, show: false, backgroundColor: '#08111d', webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true, devTools: false } })
+  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  window.webContents.on('will-navigate', (event) => event.preventDefault())
+  await window.loadFile(path.join(root, '.screenshot-build/index.html'), { hash: 'full' })
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  const evidence = await window.webContents.executeJavaScript(`(()=>{const text=document.body.innerText,required=[document.querySelector('.receipt-simulation'),document.querySelector('.receipt-full'),document.querySelector('.receipt-explanation')];return{simulation:text.includes('SIMULATION, NOT REAL'),before:text.includes('Before')&&text.includes('12.4'),after:text.includes('After')&&text.includes('9.8'),change:text.includes('Change')&&text.includes('-2.6'),meaning:text.includes('What this means')&&text.includes('measurement comparison, not proof'),quality:text.includes('Sample quality')&&text.includes('Enough valid measurements'),requiredVisible:required.every(node=>{const rect=node?.getBoundingClientRect();return rect&&rect.top>=0&&rect.bottom<=innerHeight}),overflow:document.documentElement.scrollWidth>innerWidth+1}})()`, true)
+  if (!evidence.simulation || !evidence.before || !evidence.after || !evidence.change || !evidence.meaning || !evidence.quality || !evidence.requiredVisible || evidence.overflow) throw new Error(`Release screenshot validation failed: ${JSON.stringify(evidence)}`)
+  await mkdir(path.dirname(output), { recursive: true })
+  await writeFile(output, (await window.webContents.capturePage()).toPNG())
+  window.destroy()
+  console.log('Captured credential-free simulated receipt to docs/screenshots/reset-receipt-result.png')
+  app.quit()
+}).catch((error) => { console.error(error); app.exit(1) })

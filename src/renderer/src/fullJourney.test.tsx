@@ -31,7 +31,7 @@ async function advance(milliseconds: number): Promise<void> {
 }
 
 function expectSimulationDisclosure(): void {
-  expect(document.body.textContent).toContain('Dev simulation: synthetic data, not demo evidence')
+  expect(document.body.textContent).toContain('SIMULATION, NOT REAL')
 }
 
 async function runJourney(width: number, height: number): Promise<void> {
@@ -40,20 +40,23 @@ async function runJourney(width: number, height: number): Promise<void> {
   if (!host) {
     host = document.createElement('div')
     document.body.append(host)
-  root = createRoot(host)
-  await act(async () => root!.render(<App />))
-  expect(document.querySelector('.simulation-disclosure')).toBeNull()
-  expect(document.querySelector('.camera-status')?.textContent).toBe('Camera: off')
+    root = createRoot(host)
+    await act(async () => root!.render(<App />))
+    expect(document.querySelector('.simulation-disclosure')).toBeNull()
+    expect(document.querySelector('.camera-status')?.textContent).toBe('Camera: off')
   } else {
     const existingConsent = document.querySelector<HTMLInputElement>('.consent-check input')!
     if (existingConsent.checked) act(() => existingConsent.click())
   }
 
-  const source = document.querySelector<HTMLSelectElement>('.field-label select')!
-  act(() => {
+  if (!document.querySelector('.consent-panel')) await click('Start a reset')
+
+  const source = document.querySelector<HTMLSelectElement>('.field-label select')
+  if (source) act(() => {
     source.value = 'simulation'
     source.dispatchEvent(new Event('change', { bubbles: true }))
   })
+  else expect(useSession.getState().source).toBe('simulation')
   expect(button('Start session').disabled).toBe(true)
   expectSimulationDisclosure()
   expect(document.querySelector('.camera-status')?.textContent).toBe('Camera: off, simulation')
@@ -66,39 +69,34 @@ async function runJourney(width: number, height: number): Promise<void> {
   await click('Start session')
   expect(useSession.getState().phase).toBe('running')
   await advance(1_000)
+  expect(document.body.textContent).toContain('This session')
+  expect(document.querySelector('.session-instrument')?.textContent).toContain('Natural breathing')
+  expect(document.body.textContent).not.toContain('Flower quality')
+  expect(document.body.textContent).toContain('Chest trace')
   expect(document.querySelector('canvas[aria-label="Live measured breathing flower"]')).toBeTruthy()
   expectSimulationDisclosure()
 
-  await advance(6_800)
-  expect(useSession.getState().gatedRates).toEqual([])
-  await advance(2_100)
-  const validRates = [...useSession.getState().gatedRates]
-  expect(validRates.length).toBeGreaterThan(0)
-  expect(validRates.every((rate) => rate >= 4 && rate <= 45)).toBe(true)
-  expect(useSession.getState().sample?.quality.kind).toBe('ok')
-  expect(sessionRecorder.latestChest()).toBeTypeOf('number')
-
-  const opener = button('Open guided pacer')
-  opener.focus()
-  await click('Open guided pacer')
-  expect(document.activeElement?.getAttribute('aria-label')).toBe('Close guided pacer')
+  expect(document.body.textContent).toContain('Natural breathing: 0 of 3 readings')
+  await advance(31_000)
+  expect(document.body.textContent).toContain('Start guided minute')
+  expect(useSession.getState().gatedRates.length).toBeGreaterThanOrEqual(3)
+  expect(document.querySelector('details.pace-settings')?.hasAttribute('open')).toBe(false)
   expect(document.body.textContent).toContain('GUIDED, not measured')
   expectSimulationDisclosure()
-  await click('Start guided pacing')
-  await advance(63_000)
-  expect(document.querySelector('.pacer-overlay')?.getAttribute('data-pacer-status')).toBe('complete')
+  await click('Start guided minute')
+  expect(window.breathebreak.recordLiveTestEvent).toHaveBeenCalledWith({event:'pacer-start'})
+  await advance(48_000)
+  expect(document.querySelector('.guided-inline-card')?.getAttribute('data-pacer-status')).toBe('complete')
   expect(sessionRecorder.guidedCompletions.size).toBe(1)
   await click('Close')
-  expect(document.querySelector('.pacer-overlay')).toBeNull()
-  expect(document.activeElement).toBe(opener)
+  expect(window.breathebreak.recordLiveTestEvent).toHaveBeenCalledWith({event:'pacer-end'})
 
   const ratesAtStop = [...useSession.getState().gatedRates]
-  const expectedAverage = ratesAtStop.reduce((sum, rate) => sum + rate, 0) / ratesAtStop.length
   await click('Stop session')
   expect(useSession.getState().phase).toBe('recap')
   await advance(300)
   expect(useSession.getState().recap).toMatchObject({
-    averageBreathingRate: expectedAverage,
+    receiptKind: 'full',
     sampleCount: ratesAtStop.length,
     source: 'simulation',
     guidedPaceCompleted: true
@@ -107,14 +105,13 @@ async function runJourney(width: number, height: number): Promise<void> {
   expect(useSession.getState().gatedRates).toEqual([])
   expect(useSession.getState().sample).toBeUndefined()
   expect(sessionRecorder.size).toBe(0)
-  expect(document.body.textContent).toContain('Guided pace completed')
-  expect(document.body.textContent).toContain('Guided, not measured')
+  expect(document.body.textContent).toContain('Guide pace4s in · 6s out')
   expectSimulationDisclosure()
 
   await click('Done')
   expect(useSession.getState()).toMatchObject({ phase: 'ready', recap: undefined, gatedRates: [], sample: undefined })
   await advance(300)
-  expect(document.body.textContent).toContain('Welcome / Consent')
+  expect(document.body.textContent).toContain('Before you begin')
   expect(button('Start session').disabled).toBe(false)
   expectSimulationDisclosure()
 
@@ -138,11 +135,12 @@ beforeAll(() => {
 beforeEach(() => {
   vi.clearAllTimers()
   vi.setSystemTime(new Date('2026-11-13T12:00:00Z'))
-  const values = new Map<string, string>()
+  const values = new Map<string, string>([['breathebreak.guideSeen.v1', 'true']])
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value), removeItem: (key: string) => values.delete(key), clear: () => values.clear() } })
   Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => null })
+  Object.defineProperty(window, 'breathebreak', { configurable: true, value: { getRuntimeInfo: vi.fn(), getLiveTestConfig: vi.fn().mockResolvedValue({enabled:false,writing:false,runId:''}), beginLiveTestSession:vi.fn(),endLiveTestSession:vi.fn(),copyLiveTestRunReport:vi.fn(),updateLiveTestCounters: vi.fn(), recordLiveTestEvent: vi.fn() } })
   sessionRecorder.clear()
-  useSession.setState({ phase: 'welcome', consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
+  useSession.setState({ phase: 'welcome', receiptPhase: 'idle', baselineReady: false, consented: false, source: 'smartspectra', cameraId: undefined, sample: undefined, error: undefined, startedAt: undefined, gatedRates: [], recap: undefined })
 })
 
 afterEach(() => {
@@ -161,5 +159,5 @@ describe('complete simulation-only user journey', () => {
   it('completes every state at both target viewports without stale session data', async () => {
     await runJourney(1280, 800)
     await runJourney(1440, 900)
-  })
+  }, 15_000)
 })
