@@ -29,6 +29,18 @@ Reset Receipt combines a short guided breathing exercise with contactless breath
 
 It is a non-medical wellness prototype. It does not measure pulse, diagnose stress, prove relaxation, recommend treatment, or establish health improvement.
 
+### New: Automatic Voice Positioning (Experimental)
+
+Reset Receipt now includes optional, real-time voice guidance powered by the locally installed Microsoft Zira female voice on Windows.
+
+During a SmartSpectra session, the app can detect supported camera-positioning issues and speak helpful corrections, including when your face is missing, too close, too far away, or incorrectly positioned.
+
+Guidance continues throughout the session, with reminders when positioning problems persist or return. Users can disable voice guidance at any time without stopping their breathing session.
+
+**Availability:** Currently implemented in the development version. Not included in the published v0.1.0 Windows installer.
+
+**Testing:** Automated and offline voice tests passed. The latest repeated-correction fix has not yet been verified during a real SmartSpectra session.
+
 ## 4. How it works
 
 1. Choose **Simulation** or **Real measurement**.
